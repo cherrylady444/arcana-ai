@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Tarot.Api/Tarot.Api.csproj" />
+  <Project Path="Tarot.Application/Tarot.Application.csproj" />
+  <Project Path="Tarot.Domain/Tarot.Domain.csproj" />
+  <Project Path="Tarot.Infrastructure/Tarot.Infrastructure.csproj" />
+  <Project Path="Tarot.Tests/Tarot.Tests.csproj" />
+</Solution>
