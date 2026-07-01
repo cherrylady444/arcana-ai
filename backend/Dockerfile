@@ -1,14 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY Tarot.sln ./
+COPY Tarot.slnx ./
 COPY Tarot.Api/Tarot.Api.csproj Tarot.Api/
 COPY Tarot.Application/Tarot.Application.csproj Tarot.Application/
 COPY Tarot.Domain/Tarot.Domain.csproj Tarot.Domain/
 COPY Tarot.Infrastructure/Tarot.Infrastructure.csproj Tarot.Infrastructure/
 COPY Tarot.Tests/Tarot.Tests.csproj Tarot.Tests/
 
-RUN dotnet restore Tarot.sln
+RUN dotnet restore Tarot.slnx
 
 COPY . .
 
