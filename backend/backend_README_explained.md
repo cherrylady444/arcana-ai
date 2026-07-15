@@ -568,3 +568,29 @@ Suggested learning order:
 9. Add Python AI service call.
 10. Only then build the frontend form.
 ```
+
+----
+
+That means:
+
+1. Create the full tarot deck.
+2. Draw 3 unique cards.
+3. Use secure randomness.
+4. Add tests proving no duplicate cards are drawn.
+
+The architecture then becomes:
+
+Tarot.Domain
+  TarotCard
+  CardOrientation
+  DrawnCard
+  TarotDeck
+
+Tarot.Application
+  IReadingService
+  CreateReadingService
+  ICardDrawingService
+  SecureCardDrawingService
+
+Tarot.Tests
+  SecureCardDrawingServiceTests

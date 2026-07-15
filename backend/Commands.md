@@ -46,3 +46,21 @@ dotnet run --project backend/Tarot.Api
 ```
 
 **docker run --rm -p 5000:8080 arcana-backend:dev**
+
+Run this now
+
+From your backend folder:
+
+dotnet clean Tarot.slnx
+dotnet build Tarot.slnx
+dotnet test Tarot.slnx
+
+Then run the API:
+
+dotnet run --project Tarot.Api
+
+Test:
+
+curl -i -X POST http://localhost:5069/api/readings \
+  -H "Content-Type: application/json" \
+  -d '{"question":"What should I focus on today?"}'

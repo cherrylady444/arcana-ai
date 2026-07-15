@@ -20,6 +20,6 @@ saved database ID
 public sealed record CreateReadingResult(
     Guid Id,
     string Question,
-    IReadOnlyCollection<TarotCard> Cards,
+    IReadOnlyCollection<DrawnCard> Cards,
     DateTimeOffset CreatedAtUtc
 );

@@ -159,14 +159,14 @@ dotnet run --project Tarot.Api
 The current `launchSettings.json` configures the HTTP profile to use:
 
 ```text
-http://localhost:5069
+http://localhost:5000
 ```
 
 Test the API from another terminal:
 
 ```bash
-curl http://localhost:5069/
-curl http://localhost:5069/health
+curl http://localhost:5000/
+curl http://localhost:5000/health
 ```
 
 Expected response from `/`:
@@ -291,7 +291,7 @@ Returns basic service information.
 Example:
 
 ```bash
-curl http://localhost:5069/
+curl http://localhost:5000/
 ```
 
 Expected response:
@@ -310,7 +310,7 @@ Health check endpoint.
 Example:
 
 ```bash
-curl http://localhost:5069/health
+curl http://localhost:/health
 ```
 
 Expected result:
