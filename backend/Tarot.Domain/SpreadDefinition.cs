@@ -1,5 +1,8 @@
 namespace Tarot.Domain;
 
+/// <summary>
+/// Represents a whole tarot spread definition, including its key, name, description, intent, and positions.
+/// </summary>
 public sealed record SpreadDefinition(
     string Key,
     string Name,

@@ -1,7 +1,10 @@
 using Tarot.Domain;
 
 namespace Tarot.Application.Spreads;
-
+/// <summary>
+/// Provides a catalog of built-in tarot spreads, including their definitions and positions.
+/// </summary>
+/// Is in .Application layer, as it is applicaiton-specific, it is part of the app's behaviour/use cases.
 public sealed class BuiltInSpreadCatalog : ISpreadCatalog
 {
     private static readonly IReadOnlyList<SpreadDefinition> Spreads = new List<SpreadDefinition>
