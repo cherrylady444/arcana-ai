@@ -1,9 +1,12 @@
 using Serilog;
 using Tarot.Application.Cards;
 using Tarot.Application.Readings;
+using Tarot.Application.Spreads;
 using Tarot.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 builder.Host.UseSerilog((context, configuration) =>
 {
@@ -28,6 +31,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
 builder.Services.AddScoped<IReadingService, CreateReadingService>();
 
@@ -43,60 +47,176 @@ app.MapGet("/", () => Results.Ok(new
 
 app.MapHealthChecks("/health");
 
-app.MapPost("/api/readings", (
-    CreateReadingRequest request,
-    IReadingService readingService) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Question))
-    {
-        return Results.BadRequest(new
-        {
-            error = "Question is required."
-        });
-    }
+app.MapGet("/api/spreads", GetSpreadSummaries);
 
-    var result = readingService.CreateReading(
-        new CreateReadingCommand(request.Question)
-    );
+app.MapGet("/api/spreads/{spreadKey}", GetSpreadDetails);
 
-    var response = new ReadingResponse(
-        Id: result.Id,
-        Question: result.Question,
-        Cards: result.Cards.Select(ToResponse).ToList(),
-        CreatedAtUtc: result.CreatedAtUtc
-    );
-
-    return Results.Ok(response);
-});
+app.MapPost("/api/readings", CreateReading);
 
 app.Run();
 
-static DrawnCardResponse ToResponse(DrawnCard drawnCard)
+static IResult GetSpreadSummaries(ISpreadCatalog spreadCatalog)
 {
-    return new DrawnCardResponse(
-        Id: drawnCard.Card.Id,
-        Name: drawnCard.Card.Name,
-        Arcana: drawnCard.Card.Arcana,
-        Meaning: drawnCard.Card.Meaning,
-        Orientation: drawnCard.Orientation.ToString()
+    var response = spreadCatalog.GetBuiltInSpreads()
+        .Select(ToSummaryResponse)
+        .ToList();
+
+    return Results.Ok(response);
+}
+
+static IResult GetSpreadDetails(string spreadKey, ISpreadCatalog spreadCatalog)
+{
+    var spread = spreadCatalog.GetByKey(spreadKey);
+
+    if (spread is null)
+    {
+        return Results.NotFound(new
+        {
+            error = $"Spread '{spreadKey}' was not found."
+        });
+    }
+
+    return Results.Ok(ToDetailResponse(spread));
+}
+
+static IResult CreateReading(
+    CreateReadingRequest request,
+    IReadingService readingService)
+{
+    try
+    {
+        var result = readingService.CreateReading(
+            new CreateReadingCommand(
+                SpreadKey: request.SpreadKey,
+                UserContext: request.UserContext
+            )
+        );
+
+        var response = new ReadingResponse(
+            Id: result.Id,
+            UserContext: result.UserContext,
+            SpreadKey: result.SpreadKey,
+            SpreadName: result.SpreadName,
+            Cards: result.Cards.Select(ToReadingCardResponse).ToList(),
+            CreatedAtUtc: result.CreatedAtUtc
+        );
+
+        return Results.Ok(response);
+    }
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
+}
+
+static SpreadSummaryResponse ToSummaryResponse(SpreadDefinition spread)
+{
+    return new SpreadSummaryResponse(
+        Key: spread.Key,
+        Name: spread.Name,
+        ShortDescription: spread.ShortDescription,
+        Intent: spread.Intent,
+        CardCount: spread.CardCount
+    );
+}
+
+static SpreadDetailResponse ToDetailResponse(SpreadDefinition spread)
+{
+    return new SpreadDetailResponse(
+        Key: spread.Key,
+        Name: spread.Name,
+        ShortDescription: spread.ShortDescription,
+        Description: spread.Description,
+        Intent: spread.Intent,
+        CardCount: spread.CardCount,
+        Positions: spread.Positions
+            .OrderBy(position => position.Order)
+            .Select(ToSpreadPositionResponse)
+            .ToList()
+    );
+}
+
+static SpreadPositionResponse ToSpreadPositionResponse(SpreadPositionDefinition position)
+{
+    return new SpreadPositionResponse(
+        Order: position.Order,
+        Key: position.Key,
+        Title: position.Title,
+        Prompt: position.Prompt,
+        Description: position.Description
+    );
+}
+
+static ReadingCardResponse ToReadingCardResponse(ReadingCard readingCard)
+{
+    return new ReadingCardResponse(
+        PositionOrder: readingCard.Position.Order,
+        PositionKey: readingCard.Position.Key,
+        PositionTitle: readingCard.Position.Title,
+        PositionPrompt: readingCard.Position.Prompt,
+        PositionDescription: readingCard.Position.Description,
+        CardId: readingCard.Card.Id,
+        CardName: readingCard.Card.Name,
+        Arcana: readingCard.Card.Arcana,
+        Suit: readingCard.Card.Suit,
+        Orientation: readingCard.Orientation.ToString(),
+        Meaning: readingCard.Meaning
     );
 }
 
 public sealed record CreateReadingRequest(
-    string Question
+    string? SpreadKey,
+    string? UserContext
 );
 
 public sealed record ReadingResponse(
     Guid Id,
-    string Question,
-    IReadOnlyCollection<DrawnCardResponse> Cards,
+    string? UserContext,
+    string SpreadKey,
+    string SpreadName,
+    IReadOnlyCollection<ReadingCardResponse> Cards,
     DateTimeOffset CreatedAtUtc
 );
 
-public sealed record DrawnCardResponse(
-    Guid Id,
-    string Name,
+public sealed record ReadingCardResponse(
+    int PositionOrder,
+    string PositionKey,
+    string PositionTitle,
+    string PositionPrompt,
+    string PositionDescription,
+    Guid CardId,
+    string CardName,
     string Arcana,
-    string Meaning,
-    string Orientation
+    string? Suit,
+    string Orientation,
+    string Meaning
+);
+
+public sealed record SpreadSummaryResponse(
+    string Key,
+    string Name,
+    string ShortDescription,
+    string Intent,
+    int CardCount
+);
+
+public sealed record SpreadDetailResponse(
+    string Key,
+    string Name,
+    string ShortDescription,
+    string Description,
+    string Intent,
+    int CardCount,
+    IReadOnlyCollection<SpreadPositionResponse> Positions
+);
+
+public sealed record SpreadPositionResponse(
+    int Order,
+    string Key,
+    string Title,
+    string Prompt,
+    string Description
 );

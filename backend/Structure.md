@@ -23,18 +23,40 @@ backend/
   Tarot.sln
 
   Tarot.Api/
+    Program.cs
     Tarot.Api.csproj
 
   Tarot.Domain/
+    TarotCard.cs
+    TarotDeck.cs
+    DrawnCard.cs
+    ReadingCard.cs
+    SpreadDefinition.cs
+    SpreadPositionDefinition.cs
+    CardOrientation.cs
     Tarot.Domain.csproj
 
   Tarot.Application/
+    Cards/
+      ICardDrawingService.cs
+      CardDrawingService.cs
+    Readings/
+      IReadingService.cs
+      CreateReadingService.cs
+      CreateReadingCommand.cs
+      CreateReadingResult.cs
+    Spreads/
+      ISpreadCatalog.cs
+      BuiltInSpreadCatalog.cs
     Tarot.Application.csproj
 
   Tarot.Infrastructure/
     Tarot.Infrastructure.csproj
 
   Tarot.Tests/
+    Cards/
+    Readings/
+    Spreads/
     Tarot.Tests.csproj
 ```
 
@@ -87,15 +109,17 @@ A use case is something the user wants to do.
 
 Example:
 
-Create a new 3-card tarot reading
+Create a new tarot reading using a selected spread
 
 The application layer coordinates the logic:
 
 ```
 Validate the request
-Ask the domain logic to draw cards
-Ask the database to save the session
-Ask the AI service to interpret the result
+Find the selected spread
+Ask the card drawing service to draw the required number of cards
+Assign each card to its spread position
+Later: ask the database to save the session
+Later: ask the AI service to interpret the already-drawn cards
 Return the final result
 ```
 
@@ -125,9 +149,10 @@ PostgreSQL repositories
 
 It contains tests, like:
 ```
-Secure card drawing should not draw the same card twice.
-A 3-card spread should return exactly 3 cards.
+Card drawing should not draw the same card twice.
+Each built-in spread should return the expected number of cards.
 The backend should reject an empty question.
+Reversed cards should use reversed meanings.
 ```
 
 # Visual version

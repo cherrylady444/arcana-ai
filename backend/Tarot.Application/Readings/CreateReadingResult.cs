@@ -3,13 +3,6 @@ using Tarot.Domain;
 namespace Tarot.Application.Readings;
 
 /*
-For now, it contains:
-
-reading ID
-question
-3 cards
-creation time
-
 Later, it can also contain:
 
 AI interpretation
@@ -19,7 +12,9 @@ saved database ID
 */
 public sealed record CreateReadingResult(
     Guid Id,
-    string Question,
-    IReadOnlyCollection<DrawnCard> Cards,
+    string? UserContext,
+    string SpreadKey,
+    string SpreadName,
+    IReadOnlyCollection<ReadingCard> Cards,
     DateTimeOffset CreatedAtUtc
 );
