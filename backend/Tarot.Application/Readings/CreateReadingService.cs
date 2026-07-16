@@ -10,7 +10,8 @@ namespace Tarot.Application.Readings;
 /// <remarks>
 /// The service chooses the requested spread, draws the required number of cards,
 /// assigns each drawn card to the matching spread position, applies the
-/// orientation-specific meaning, and preserves optional user context.
+/// orientation-specific meaning, preserves optional user context, and persists
+/// the created reading through the configured repository.
 /// </remarks>
 public sealed class CreateReadingService : IReadingService
 {
@@ -18,16 +19,21 @@ public sealed class CreateReadingService : IReadingService
 
     private readonly ICardDrawingService _cardDrawingService;
     private readonly ISpreadCatalog _spreadCatalog;
+    private readonly IReadingRepository _readingRepository;
 
     public CreateReadingService(
         ICardDrawingService cardDrawingService,
-        ISpreadCatalog spreadCatalog)
+        ISpreadCatalog spreadCatalog,
+        IReadingRepository readingRepository)
     {
         _cardDrawingService = cardDrawingService;
         _spreadCatalog = spreadCatalog;
+        _readingRepository = readingRepository;
     }
 
-    public CreateReadingResult CreateReading(CreateReadingCommand command)
+    public async Task<CreateReadingResult> CreateReadingAsync(
+        CreateReadingCommand command,
+        CancellationToken cancellationToken = default)
     {
         var spreadKey = string.IsNullOrWhiteSpace(command.SpreadKey)
             ? DefaultSpreadKey
@@ -66,7 +72,7 @@ public sealed class CreateReadingService : IReadingService
             ? null
             : command.UserContext.Trim();
 
-        return new CreateReadingResult(
+        var result = new CreateReadingResult(
             Id: Guid.NewGuid(),
             UserContext: userContext,
             SpreadKey: spread.Key,
@@ -74,5 +80,9 @@ public sealed class CreateReadingService : IReadingService
             Cards: readingCards,
             CreatedAtUtc: DateTimeOffset.UtcNow
         );
+
+        await _readingRepository.SaveAsync(result, cancellationToken);
+
+        return result;
     }
 }

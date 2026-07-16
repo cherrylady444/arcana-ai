@@ -12,8 +12,12 @@ GetReadingById
 GetReadingHistory
 SaveReading
 GenerateAiInterpretation
+
+CreateReadingService async and save readings
 */
 public interface IReadingService
 {
-    CreateReadingResult CreateReading(CreateReadingCommand command);
+    Task<CreateReadingResult> CreateReadingAsync(
+        CreateReadingCommand command,
+        CancellationToken cancellationToken = default);
 }

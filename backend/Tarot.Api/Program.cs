@@ -4,6 +4,10 @@ using Tarot.Application.Readings;
 using Tarot.Application.Spreads;
 using Tarot.Domain;
 
+using Microsoft.EntityFrameworkCore;
+using Tarot.Infrastructure.Persistence;
+using Tarot.Infrastructure.Persistence.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
@@ -31,9 +35,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
+// builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
+// builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
+// builder.Services.AddScoped<IReadingService, CreateReadingService>();
+
+// For the database connection 
+builder.Services.AddDbContext<TarotDbContext>(options =>
+{
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
 builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
 builder.Services.AddScoped<IReadingService, CreateReadingService>();
+builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
+builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 
 var app = builder.Build();
 
@@ -79,17 +95,19 @@ static IResult GetSpreadDetails(string spreadKey, ISpreadCatalog spreadCatalog)
     return Results.Ok(ToDetailResponse(spread));
 }
 
-static IResult CreateReading(
+static async Task<IResult> CreateReading(
     CreateReadingRequest request,
-    IReadingService readingService)
+    IReadingService readingService,
+    CancellationToken cancellationToken)
 {
     try
     {
-        var result = readingService.CreateReading(
+        var result = await readingService.CreateReadingAsync(
             new CreateReadingCommand(
                 SpreadKey: request.SpreadKey,
                 UserContext: request.UserContext
-            )
+            ),
+            cancellationToken
         );
 
         var response = new ReadingResponse(

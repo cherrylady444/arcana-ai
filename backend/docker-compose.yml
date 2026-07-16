@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: arcana-ai-postgres
+    environment:
+      POSTGRES_DB: arcana_ai
+      POSTGRES_USER: arcana_user
+      POSTGRES_PASSWORD: arcana_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - arcana_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  arcana_postgres_data:

@@ -27,3 +27,4 @@ Test:
 curl -i -X POST http://localhost:5000/api/readings \
   -H "Content-Type: application/json" \
   -d '{"question":"What should I focus on today?"}'
+  

@@ -8,11 +8,11 @@ namespace Tarot.Tests.Readings;
 public sealed class CreateReadingServiceTests
 {
     [Fact]
-    public void CreateReading_WhenSpreadKeyIsMissing_UsesThreeCardSpread()
+    public async Task CreateReadingAsync_WhenSpreadKeyIsMissing_UsesThreeCardSpread()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(new CreateReadingCommand());
+        var result = await service.CreateReadingAsync(new CreateReadingCommand());
 
         Assert.Null(result.UserContext);
         Assert.Equal("three-card", result.SpreadKey);
@@ -21,11 +21,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_WhenSpreadKeyIsOneCard_ReturnsOneCard()
+    public async Task CreateReadingAsync_WhenSpreadKeyIsOneCard_ReturnsOneCard()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(SpreadKey: "one-card")
         );
 
@@ -34,11 +34,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_WhenSpreadKeyIsCelticCross_ReturnsTenCards()
+    public async Task CreateReadingAsync_WhenSpreadKeyIsCelticCross_ReturnsTenCards()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(SpreadKey: "celtic-cross")
         );
 
@@ -47,11 +47,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_AssignsSpreadPositionsInOrder()
+    public async Task CreateReadingAsync_AssignsSpreadPositionsInOrder()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(SpreadKey: "three-card")
         );
 
@@ -64,11 +64,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_ReturnsUniqueCards()
+    public async Task CreateReadingAsync_ReturnsUniqueCards()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(SpreadKey: "five-card")
         );
 
@@ -81,11 +81,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_DoesNotRequireUserContext()
+    public async Task CreateReadingAsync_DoesNotRequireUserContext()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(SpreadKey: "one-card")
         );
 
@@ -95,11 +95,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_WhenUserContextIsProvided_TrimsAndPreservesIt()
+    public async Task CreateReadingAsync_WhenUserContextIsProvided_TrimsAndPreservesIt()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(
                 SpreadKey: "three-card-love",
                 UserContext: "  General relationship insight  "
@@ -110,11 +110,11 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_WhenUserContextIsWhitespace_TreatsItAsNull()
+    public async Task CreateReadingAsync_WhenUserContextIsWhitespace_TreatsItAsNull()
     {
         var service = CreateService();
 
-        var result = service.CreateReading(
+        var result = await service.CreateReadingAsync(
             new CreateReadingCommand(
                 SpreadKey: "three-card",
                 UserContext: "   "
@@ -125,17 +125,17 @@ public sealed class CreateReadingServiceTests
     }
 
     [Fact]
-    public void CreateReading_WhenSpreadKeyIsUnknown_ThrowsException()
+    public async Task CreateReadingAsync_WhenSpreadKeyIsUnknown_ThrowsException()
     {
         var service = CreateService();
 
-        Assert.Throws<ArgumentException>(() =>
-            service.CreateReading(new CreateReadingCommand(SpreadKey: "unknown-spread"))
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateReadingAsync(new CreateReadingCommand(SpreadKey: "unknown-spread"))
         );
     }
 
     [Fact]
-    public void CreateReading_UsesReversedMeaningForReversedCards()
+    public async Task CreateReadingAsync_UsesReversedMeaningForReversedCards()
     {
         var card = new TarotCard
         {
@@ -147,22 +147,54 @@ public sealed class CreateReadingServiceTests
             ReversedMeaning = "Reversed test meaning"
         };
 
-        var service = new CreateReadingService(
-            new FixedCardDrawingService(new DrawnCard(card, CardOrientation.Reversed)),
-            new BuiltInSpreadCatalog()
+        var service = CreateService(
+            cardDrawingService: new FixedCardDrawingService(new DrawnCard(card, CardOrientation.Reversed))
         );
 
-        var result = service.CreateReading(new CreateReadingCommand(SpreadKey: "one-card"));
+        var result = await service.CreateReadingAsync(new CreateReadingCommand(SpreadKey: "one-card"));
 
         Assert.Equal("Reversed test meaning", result.Cards.Single().Meaning);
     }
 
-    private static CreateReadingService CreateService()
+    [Fact]
+    public async Task CreateReadingAsync_SavesCreatedReading()
+    {
+        var repository = new FakeReadingRepository();
+        var service = CreateService(repository: repository);
+
+        var result = await service.CreateReadingAsync(
+            new CreateReadingCommand(SpreadKey: "three-card")
+        );
+
+        Assert.Single(repository.SavedReadings);
+        Assert.Equal(result.Id, repository.SavedReadings[0].Id);
+        Assert.Equal("three-card", repository.SavedReadings[0].SpreadKey);
+        Assert.Equal(3, repository.SavedReadings[0].Cards.Count);
+    }
+
+    private static CreateReadingService CreateService(
+        ICardDrawingService? cardDrawingService = null,
+        ISpreadCatalog? spreadCatalog = null,
+        FakeReadingRepository? repository = null)
     {
         return new CreateReadingService(
-            new CardDrawingService(),
-            new BuiltInSpreadCatalog()
+            cardDrawingService ?? new CardDrawingService(),
+            spreadCatalog ?? new BuiltInSpreadCatalog(),
+            repository ?? new FakeReadingRepository()
         );
+    }
+
+    private sealed class FakeReadingRepository : IReadingRepository
+    {
+        public List<CreateReadingResult> SavedReadings { get; } = new();
+
+        public Task SaveAsync(
+            CreateReadingResult reading,
+            CancellationToken cancellationToken = default)
+        {
+            SavedReadings.Add(reading);
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FixedCardDrawingService : ICardDrawingService
@@ -176,6 +208,11 @@ public sealed class CreateReadingServiceTests
 
         public IReadOnlyList<DrawnCard> DrawCards(int count)
         {
+            if (count > _cards.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), count, "The fixed test deck does not contain enough cards.");
+            }
+
             return _cards.Take(count).ToList();
         }
     }
