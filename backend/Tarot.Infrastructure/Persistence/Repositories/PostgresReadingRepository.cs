@@ -1,5 +1,6 @@
 using Tarot.Application.Readings;
 using Tarot.Infrastructure.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Tarot.Infrastructure.Persistence.Repositories;
 
@@ -50,5 +51,50 @@ public sealed class PostgresReadingRepository : IReadingRepository
         _dbContext.Readings.Add(entity);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ReadingDetails?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _dbContext.Readings
+            .AsNoTracking() // We don't need to track the entity since we are only reading it
+            .Include(reading => reading.Cards)
+            
+            // It returns:
+            // one reading when the ID exists;
+            // null when it does not exist.
+            .SingleOrDefaultAsync(
+                reading => reading.Id == id,
+                cancellationToken);
+
+        if (entity is null)
+        {
+            return null;
+        }
+
+        return new ReadingDetails(
+            Id: entity.Id,
+            UserContext: entity.UserContext,
+            SpreadKey: entity.SpreadKey,
+            SpreadName: entity.SpreadName,
+            Cards: entity.Cards
+                .OrderBy(card => card.PositionOrder)
+                .Select(card => new ReadingCardDetails(
+                    PositionOrder: card.PositionOrder,
+                    PositionKey: card.PositionKey,
+                    PositionTitle: card.PositionTitle,
+                    PositionPrompt: card.PositionPrompt,
+                    PositionDescription: card.PositionDescription,
+                    CardId: card.CardId,
+                    CardName: card.CardName,
+                    Arcana: card.Arcana,
+                    Suit: card.Suit,
+                    Orientation: card.Orientation,
+                    Meaning: card.Meaning
+                ))
+                .ToList(),
+            CreatedAtUtc: entity.CreatedAtUtc
+        );
     }
 }

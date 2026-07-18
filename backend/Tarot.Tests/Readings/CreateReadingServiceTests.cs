@@ -195,6 +195,13 @@ public sealed class CreateReadingServiceTests
             SavedReadings.Add(reading);
             return Task.CompletedTask;
         }
+
+        public Task<ReadingDetails?> GetByIdAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<ReadingDetails?>(null);
+        }
     }
 
     private sealed class FixedCardDrawingService : ICardDrawingService

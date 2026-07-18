@@ -35,10 +35,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
-// builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
-// builder.Services.AddScoped<IReadingService, CreateReadingService>();
-
 // For the database connection 
 builder.Services.AddDbContext<TarotDbContext>(options =>
 {
@@ -48,6 +44,7 @@ builder.Services.AddDbContext<TarotDbContext>(options =>
 
 builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
 builder.Services.AddScoped<IReadingService, CreateReadingService>();
+builder.Services.AddScoped<IGetReadingByIdService, GetReadingByIdService>();
 builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 
@@ -68,6 +65,8 @@ app.MapGet("/api/spreads", GetSpreadSummaries);
 app.MapGet("/api/spreads/{spreadKey}", GetSpreadDetails);
 
 app.MapPost("/api/readings", CreateReading);
+
+app.MapGet("/api/readings/{id:guid}", GetReadingById);
 
 app.Run();
 
@@ -115,7 +114,9 @@ static async Task<IResult> CreateReading(
             UserContext: result.UserContext,
             SpreadKey: result.SpreadKey,
             SpreadName: result.SpreadName,
-            Cards: result.Cards.Select(ToReadingCardResponse).ToList(),
+            Cards: result.Cards
+                .Select(ToCreatedReadingCardResponse)
+                .ToList(),
             CreatedAtUtc: result.CreatedAtUtc
         );
 
@@ -128,6 +129,37 @@ static async Task<IResult> CreateReading(
             error = exception.Message
         });
     }
+}
+
+static async Task<IResult> GetReadingById(
+    Guid id,
+    IGetReadingByIdService getReadingByIdService,
+    CancellationToken cancellationToken)
+{
+    var reading = await getReadingByIdService.GetByIdAsync(
+        id,
+        cancellationToken);
+
+    if (reading is null)
+    {
+        return Results.NotFound(new
+        {
+            error = $"Reading '{id}' was not found."
+        });
+    }
+
+    var response = new ReadingResponse(
+        Id: reading.Id,
+        UserContext: reading.UserContext,
+        SpreadKey: reading.SpreadKey,
+        SpreadName: reading.SpreadName,
+        Cards: reading.Cards
+            .Select(ToSavedReadingCardResponse)
+            .ToList(),
+        CreatedAtUtc: reading.CreatedAtUtc
+    );
+
+    return Results.Ok(response);
 }
 
 static SpreadSummaryResponse ToSummaryResponse(SpreadDefinition spread)
@@ -168,7 +200,8 @@ static SpreadPositionResponse ToSpreadPositionResponse(SpreadPositionDefinition 
     );
 }
 
-static ReadingCardResponse ToReadingCardResponse(ReadingCard readingCard)
+static ReadingCardResponse ToCreatedReadingCardResponse(
+    ReadingCard readingCard)
 {
     return new ReadingCardResponse(
         PositionOrder: readingCard.Position.Order,
@@ -181,6 +214,31 @@ static ReadingCardResponse ToReadingCardResponse(ReadingCard readingCard)
         Arcana: readingCard.Card.Arcana,
         Suit: readingCard.Card.Suit,
         Orientation: readingCard.Orientation.ToString(),
+        Meaning: readingCard.Meaning
+    );
+}
+
+// C# supports overloaded methods, so both can have the same name because their parameter types differ:
+
+// ToReadingCardResponse(ReadingCard readingCard)
+// ToReadingCardResponse(ReadingCardDetails readingCard)
+
+//but not when they are both in this top-level Program.cs.
+
+static ReadingCardResponse ToSavedReadingCardResponse(
+    ReadingCardDetails readingCard)
+{
+    return new ReadingCardResponse(
+        PositionOrder: readingCard.PositionOrder,
+        PositionKey: readingCard.PositionKey,
+        PositionTitle: readingCard.PositionTitle,
+        PositionPrompt: readingCard.PositionPrompt,
+        PositionDescription: readingCard.PositionDescription,
+        CardId: readingCard.CardId,
+        CardName: readingCard.CardName,
+        Arcana: readingCard.Arcana,
+        Suit: readingCard.Suit,
+        Orientation: readingCard.Orientation,
         Meaning: readingCard.Meaning
     );
 }
