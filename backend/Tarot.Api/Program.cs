@@ -35,11 +35,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// For the database connection 
+// PostgreSQL connection. In Docker Compose, the environment variable
+// ConnectionStrings__DefaultConnection overrides local appsettings values.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' is not configured.");
+
 builder.Services.AddDbContext<TarotDbContext>(options =>
 {
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null);
+    });
 });
 
 builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
@@ -50,6 +60,20 @@ builder.Services.AddScoped<IListReadingsService, ListReadingsService>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 
 var app = builder.Build();
+
+// This is enabled by Docker Compose for the current single-instance
+// development environment. For a mature production deployment, migrations
+// should normally be applied as a separate deployment step.
+if (builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+{
+    app.Logger.LogInformation("Applying pending database migrations...");
+
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<TarotDbContext>();
+    await dbContext.Database.MigrateAsync();
+
+    app.Logger.LogInformation("Database migrations applied successfully.");
+}
 
 app.UseCors("Frontend");
 

@@ -30,3 +30,21 @@ curl -i -X POST http://localhost:5000/api/readings \
   -H "Content-Type: application/json" \
   -d '{"question":"What should I focus on today?"}'
   
+6. Validate the Compose configuration
+
+Before starting anything:
+  docker compose config
+
+  docker compose down
+
+docker compose build --no-cache --progress=plain api
+
+Merg impreuna
+  docker compose up -d postgres pgadmin
+  &
+dotnet run --project Tarot.Api
+
+docker compose up -d
+
+or do both in one command
+docker compose up --build -d

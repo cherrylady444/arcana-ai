@@ -10,6 +10,32 @@ services:
       - "5432:5432"
     volumes:
       - arcana_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-arcana_user} -d ${POSTGRES_DB:-arcana_ai}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arcana-ai-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=arcana_ai;Username=arcana_user;Password=arcana_password
+      Database__ApplyMigrationsOnStartup: "true"
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 
   pgadmin:
     image: dpage/pgadmin4
@@ -19,10 +45,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin_password
     ports:
       - "5050:80"
-    depends_on:
-      - postgres
     volumes:
       - arcana_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   arcana_postgres_data:
