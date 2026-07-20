@@ -1,0 +1,21 @@
+# .NET build output
+**/bin/
+**/obj/
+**/TestResults/
+
+# Tests are not needed in the API runtime image
+Tarot.Tests/
+
+# Source-control and editor metadata
+.git/
+.github/
+.vscode/
+.idea/
+
+# Local secrets and generated files
+.env
+*.user
+*.suo
+*.log
+*.tmp
+*.zip
