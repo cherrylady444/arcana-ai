@@ -3,6 +3,8 @@ using Tarot.Application.Readings;
 using Tarot.Application.Spreads;
 using Tarot.Domain;
 
+using Tarot.Tests.TestDoubles;
+
 namespace Tarot.Tests.Readings;
 
 public sealed class CreateReadingServiceTests
@@ -182,26 +184,6 @@ public sealed class CreateReadingServiceTests
             spreadCatalog ?? new BuiltInSpreadCatalog(),
             repository ?? new FakeReadingRepository()
         );
-    }
-
-    private sealed class FakeReadingRepository : IReadingRepository
-    {
-        public List<CreateReadingResult> SavedReadings { get; } = new();
-
-        public Task SaveAsync(
-            CreateReadingResult reading,
-            CancellationToken cancellationToken = default)
-        {
-            SavedReadings.Add(reading);
-            return Task.CompletedTask;
-        }
-
-        public Task<ReadingDetails?> GetByIdAsync(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<ReadingDetails?>(null);
-        }
     }
 
     private sealed class FixedCardDrawingService : ICardDrawingService

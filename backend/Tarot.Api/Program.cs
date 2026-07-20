@@ -46,6 +46,7 @@ builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
 builder.Services.AddScoped<IReadingService, CreateReadingService>();
 builder.Services.AddScoped<IGetReadingByIdService, GetReadingByIdService>();
 builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
+builder.Services.AddScoped<IListReadingsService, ListReadingsService>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 
 var app = builder.Build();
@@ -63,8 +64,10 @@ app.MapHealthChecks("/health");
 app.MapGet("/api/spreads", GetSpreadSummaries);
 
 app.MapGet("/api/spreads/{spreadKey}", GetSpreadDetails);
-
+// POST endpoint for creating a new reading
 app.MapPost("/api/readings", CreateReading);
+// GET endpoint for retrieving a paginated list of readings
+app.MapGet("/api/readings", ListReadings);
 
 app.MapGet("/api/readings/{id:guid}", GetReadingById);
 
@@ -160,6 +163,33 @@ static async Task<IResult> GetReadingById(
     );
 
     return Results.Ok(response);
+}
+
+static async Task<IResult> ListReadings(
+    int? page,
+    int? pageSize,
+    IListReadingsService listReadingsService,
+    CancellationToken cancellationToken)
+{
+    var requestedPage = page ?? 1;
+    var requestedPageSize = pageSize ?? 20;
+
+    try
+    {
+        var result = await listReadingsService.GetPageAsync(
+            requestedPage,
+            requestedPageSize,
+            cancellationToken);
+
+        return Results.Ok(result);
+    }
+    catch (ArgumentOutOfRangeException exception)
+    {
+        return Results.BadRequest(new
+        {
+            error = exception.Message
+        });
+    }
 }
 
 static SpreadSummaryResponse ToSummaryResponse(SpreadDefinition spread)

@@ -97,4 +97,43 @@ public sealed class PostgresReadingRepository : IReadingRepository
             CreatedAtUtc: entity.CreatedAtUtc
         );
     }
+
+    public async Task<PagedReadingsResult> GetPageAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Readings
+            .AsNoTracking();
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(reading => reading.CreatedAtUtc)
+            // provides deterministic ordering when two readings have the same timestamp.
+            .ThenByDescending(reading => reading.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(reading => new ReadingSummary(
+                reading.Id,
+                reading.UserContext,
+                reading.SpreadKey,
+                reading.SpreadName,
+                reading.Cards.Count,
+                reading.CreatedAtUtc
+            ))
+            .ToListAsync(cancellationToken);
+
+        var totalPages = totalCount == 0
+            ? 0
+            : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedReadingsResult(
+            Items: items,
+            Page: page,
+            PageSize: pageSize,
+            TotalCount: totalCount,
+            TotalPages: totalPages
+        );
+    }
 }

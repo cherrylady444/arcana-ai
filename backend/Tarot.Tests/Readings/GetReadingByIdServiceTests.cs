@@ -1,4 +1,5 @@
 using Tarot.Application.Readings;
+using Tarot.Tests.TestDoubles;
 
 namespace Tarot.Tests.Readings;
 
@@ -8,7 +9,12 @@ public sealed class GetReadingByIdServiceTests
     public async Task GetByIdAsync_WhenReadingExists_ReturnsReading()
     {
         var reading = CreateReadingDetails();
-        var repository = new FakeReadingRepository(reading);
+
+        var repository = new FakeReadingRepository
+        {
+            ReadingToReturn = reading
+        };
+
         var service = new GetReadingByIdService(repository);
 
         var result = await service.GetByIdAsync(reading.Id);
@@ -22,7 +28,7 @@ public sealed class GetReadingByIdServiceTests
     [Fact]
     public async Task GetByIdAsync_WhenReadingDoesNotExist_ReturnsNull()
     {
-        var repository = new FakeReadingRepository(reading: null);
+        var repository = new FakeReadingRepository();
         var service = new GetReadingByIdService(repository);
 
         var result = await service.GetByIdAsync(Guid.NewGuid());
@@ -55,33 +61,5 @@ public sealed class GetReadingByIdServiceTests
             ],
             CreatedAtUtc: DateTimeOffset.UtcNow
         );
-    }
-
-    private sealed class FakeReadingRepository : IReadingRepository
-    {
-        private readonly ReadingDetails? _reading;
-
-        public FakeReadingRepository(ReadingDetails? reading)
-        {
-            _reading = reading;
-        }
-
-        public Task SaveAsync(
-            CreateReadingResult reading,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task<ReadingDetails?> GetByIdAsync(
-            Guid id,
-            CancellationToken cancellationToken = default)
-        {
-            var result = _reading?.Id == id
-                ? _reading
-                : null;
-
-            return Task.FromResult(result);
-        }
     }
 }

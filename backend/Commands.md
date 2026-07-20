@@ -15,6 +15,8 @@ Run this now
 From your backend folder:
 
 dotnet clean Tarot.slnx
+for fake repo
+dotnet restore Tarot.slnx
 dotnet build Tarot.slnx
 dotnet test Tarot.slnx
 
