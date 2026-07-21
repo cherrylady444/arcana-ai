@@ -48,3 +48,15 @@ docker compose up -d
 
 or do both in one command
 docker compose up --build -d
+
+--------------------------
+
+Run the integration tests
+
+Docker must be running, but your normal arcana-ai-postgres container does not need to be started.
+
+dotnet test Tarot.IntegrationTests/Tarot.IntegrationTests.csproj
+
+Then run the entire solution:
+
+dotnet test Tarot.slnx
