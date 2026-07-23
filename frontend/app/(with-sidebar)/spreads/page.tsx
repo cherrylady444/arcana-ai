@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeftIcon } from "@/components/icons/ArcanaIcons";
 import { SpreadCatalog } from "@/components/spreads/SpreadCatalog";
 import { getSpreads } from "@/lib/api";
 
@@ -5,16 +7,15 @@ export default async function SpreadsPage() {
   const spreads = await getSpreads();
 
   return (
-    <section className="arcana-page">
-      <header className="page-heading">
-        <p className="page-eyebrow">Arcana AI</p>
+    <section className="choose-spread-page">
+      <Link href="/" className="page-back-link">
+        <ArrowLeftIcon />
+        <span>New Reading</span>
+      </Link>
 
-        <h1>Predefined Spreads</h1>
-
-        <p>
-          Explore the reading structures available in Arcana AI and choose the
-          one that best matches the guidance or reflection you are seeking.
-        </p>
+      <header className="reference-page-heading">
+        <h1>Choose a spread</h1>
+        <p>Select a spread that fits your question or intention.</p>
       </header>
 
       <SpreadCatalog spreads={spreads} />

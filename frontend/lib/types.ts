@@ -1,8 +1,4 @@
-/**
- * A short representation of a tarot spread returned by GET /api/spreads.
- *
- * This type mirrors SpreadSummaryResponse from the ASP.NET Core backend.
- */
+/** Compact spread returned by GET /api/spreads. */
 export type SpreadSummary = {
   key: string;
   name: string;
@@ -11,9 +7,53 @@ export type SpreadSummary = {
   cardCount: number;
 };
 
-/**
- * One reading item returned by GET /api/readings.
- */
+/** One ordered position in a predefined spread. */
+export type SpreadPosition = {
+  order: number;
+  key: string;
+  title: string;
+  prompt: string;
+  description: string;
+};
+
+/** Complete spread returned by GET /api/spreads/{spreadKey}. */
+export type SpreadDetail = SpreadSummary & {
+  description: string;
+  positions: SpreadPosition[];
+};
+
+/** Request accepted by POST /api/readings. */
+export type CreateReadingRequest = {
+  spreadKey: string;
+  userContext: string | null;
+};
+
+/** One drawn card and its saved spread position. */
+export type ReadingCard = {
+  positionOrder: number;
+  positionKey: string;
+  positionTitle: string;
+  positionPrompt: string;
+  positionDescription: string;
+  cardId: string;
+  cardName: string;
+  arcana: string;
+  suit: string | null;
+  orientation: string;
+  meaning: string;
+};
+
+/** Complete reading returned by POST /api/readings and GET /api/readings/{id}. */
+export type Reading = {
+  id: string;
+  userContext: string | null;
+  spreadKey: string;
+  spreadName: string;
+  cards: ReadingCard[];
+  createdAtUtc: string;
+};
+
+/** One reading item returned by GET /api/readings. */
 export type ReadingSummary = {
   id: string;
   userContext: string | null;
@@ -23,9 +63,7 @@ export type ReadingSummary = {
   createdAtUtc: string;
 };
 
-/**
- * Paginated response returned by GET /api/readings.
- */
+/** Paginated response returned by GET /api/readings. */
 export type PagedReadingsResponse = {
   items: ReadingSummary[];
   page: number;

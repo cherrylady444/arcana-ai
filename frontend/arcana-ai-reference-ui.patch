@@ -1,0 +1,4760 @@
+diff --git a/app/(with-sidebar)/about/page.tsx b/app/(with-sidebar)/about/page.tsx
+index 64cd00d..7f6b87b 100644
+--- a/app/(with-sidebar)/about/page.tsx
++++ b/app/(with-sidebar)/about/page.tsx
+@@ -1,26 +1,67 @@
++import {
++  AboutLandscape,
++  CardsIcon,
++  JourneyIcon,
++  MissionIcon,
++} from "@/components/icons/ArcanaIcons";
++
++const principles = [
++  {
++    title: "Our mission",
++    description:
++      "To help you gain clarity, perspective and confidence through the ancient art of tarot.",
++    icon: MissionIcon,
++  },
++  {
++    title: "The cards",
++    description:
++      "We use a classic tarot deck. Cards are drawn randomly and placed in their positions by the system.",
++    icon: CardsIcon,
++  },
++  {
++    title: "Your journey",
++    description:
++      "You are always in control. The cards offer guidance, but you create your path.",
++    icon: JourneyIcon,
++  },
++];
++
+ export default function AboutPage() {
+   return (
+-    <section className="arcana-page">
+-      <header className="page-heading">
+-        <p className="page-eyebrow">About the project</p>
+-
++    <section className="about-page">
++      <header className="reference-page-heading about-heading">
+         <h1>About Arcana AI</h1>
+-
+-        <p>
+-          Arcana AI combines a secure ASP.NET Core tarot engine with a calm,
+-          reflective, and modern reading experience.
+-        </p>
++        <p>A modern way to explore timeless wisdom.</p>
+       </header>
+ 
+-      <div className="placeholder-panel">
+-        <h2>Reflection supported by technology</h2>
++      <section className="about-mission-panel">
++        <AboutLandscape className="about-landscape" />
++
++        <div className="about-principles">
++          {principles.map((principle) => {
++            const PrincipleIcon = principle.icon;
++
++            return (
++              <article key={principle.title} className="about-principle">
++                <span className="about-principle-icon">
++                  <PrincipleIcon />
++                </span>
++                <div>
++                  <h2>{principle.title}</h2>
++                  <p>{principle.description}</p>
++                </div>
++              </article>
++            );
++          })}
++        </div>
++      </section>
+ 
+-        <p>
+-          The ASP.NET Core backend securely draws and stores the cards. A
+-          future Python AI service will interpret only readings that have
+-          already been created and persisted.
+-        </p>
+-      </div>
++      <section className="built-with-care">
++        <h2>Built with care</h2>
++        <p>Arcana AI is a portfolio project built with</p>
++        <p>Next.js, ASP.NET Core and PostgreSQL.</p>
++        <p>More to come.</p>
++      </section>
+     </section>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/app/(with-sidebar)/page.tsx b/app/(with-sidebar)/page.tsx
+new file mode 100644
+index 0000000..bd2ce6e
+--- /dev/null
++++ b/app/(with-sidebar)/page.tsx
+@@ -0,0 +1,92 @@
++import Link from "next/link";
++import {
++  ArrowRightIcon,
++  CelestialWheel,
++  ChooseSpreadIcon,
++  DrawCardsIcon,
++  QuestionIcon,
++  SparkleIcon,
++  ViewReadingIcon,
++} from "@/components/icons/ArcanaIcons";
++
++const steps = [
++  {
++    number: "1.",
++    title: "Choose a spread",
++    description: "Pick a spread that matches your question.",
++    icon: ChooseSpreadIcon,
++  },
++  {
++    number: "2.",
++    title: "Ask your question",
++    description: "Add your question or context (optional).",
++    icon: QuestionIcon,
++  },
++  {
++    number: "3.",
++    title: "Draw the cards",
++    description: "We draw the cards and place them in their positions.",
++    icon: DrawCardsIcon,
++  },
++  {
++    number: "4.",
++    title: "View your reading",
++    description: "Explore your reading and return anytime.",
++    icon: ViewReadingIcon,
++  },
++];
++
++export default function HomePage() {
++  return (
++    <section className="landing-page">
++      <CelestialWheel className="landing-wheel" />
++
++      <div className="landing-content">
++        <p className="landing-welcome">Welcome to</p>
++        <h1>Arcana AI</h1>
++        <p className="landing-tagline">
++          Your journey. Your question. The cards hold the answers.
++        </p>
++        <p className="landing-description">
++          Arcana AI helps you explore tarot through meaningful spreads.
++          <br />
++          Ask a question, draw the cards, and discover new perspectives.
++        </p>
++
++        <Link href="/spreads" className="landing-primary-action">
++          <span>Begin a reading</span>
++          <SparkleIcon />
++        </Link>
++
++        <Link href="/readings" className="landing-readings-link">
++          <span>View your readings</span>
++          <ArrowRightIcon />
++        </Link>
++      </div>
++
++      <div className="landing-divider" />
++
++      <section className="how-it-works" aria-labelledby="how-it-works-title">
++        <h2 id="how-it-works-title">How it works</h2>
++
++        <div className="how-it-works-grid">
++          {steps.map((step) => {
++            const StepIcon = step.icon;
++
++            return (
++              <article key={step.title} className="how-step">
++                <div className="how-step-icon">
++                  <StepIcon />
++                </div>
++                <h3>
++                  {step.number} {step.title}
++                </h3>
++                <p>{step.description}</p>
++              </article>
++            );
++          })}
++        </div>
++      </section>
++    </section>
++  );
++}
+diff --git a/app/(with-sidebar)/readings/[id]/page.tsx b/app/(with-sidebar)/readings/[id]/page.tsx
+new file mode 100644
+index 0000000..d71d851
+--- /dev/null
++++ b/app/(with-sidebar)/readings/[id]/page.tsx
+@@ -0,0 +1,132 @@
++import Link from "next/link";
++import { notFound } from "next/navigation";
++import {
++  ArrowLeftIcon,
++  EditIcon,
++  GenericTarotFace,
++  NewReadingIcon,
++  ReadingsIcon,
++  SparkleIcon,
++} from "@/components/icons/ArcanaIcons";
++import { getReadingById } from "@/lib/api";
++
++type ReadingDetailsPageProps = {
++  params: Promise<{
++    id: string;
++  }>;
++};
++
++function formatDateTime(value: string): string {
++  return new Intl.DateTimeFormat("en-US", {
++    month: "short",
++    day: "numeric",
++    year: "numeric",
++    hour: "numeric",
++    minute: "2-digit",
++  }).format(new Date(value));
++}
++
++export default async function ReadingDetailsPage({ params }: ReadingDetailsPageProps) {
++  const { id } = await params;
++  const reading = await getReadingById(id);
++
++  if (!reading) {
++    notFound();
++  }
++
++  const createdAt = formatDateTime(reading.createdAtUtc);
++
++  return (
++    <section className="reading-detail-page">
++      <Link href="/readings" className="page-back-link">
++        <ArrowLeftIcon />
++        <span>Back to readings</span>
++      </Link>
++
++      <header className="reading-detail-heading">
++        <h1>Your Reading</h1>
++        <p>
++          {reading.spreadName}
++          <SparkleIcon />
++          {createdAt}
++        </p>
++      </header>
++
++      <section className="reading-question-panel">
++        <div>
++          <span>Your question</span>
++          <p>{reading.userContext?.trim() || "No question was added for this reading."}</p>
++        </div>
++        <span className="reading-edit-icon" aria-hidden="true">
++          <EditIcon />
++        </span>
++      </section>
++
++      <div className="reading-detail-layout">
++        <section className="drawn-cards-grid" aria-label="Drawn tarot cards">
++          {reading.cards
++            .slice()
++            .sort((first, second) => first.positionOrder - second.positionOrder)
++            .map((card) => {
++              const isReversed = card.orientation.toLowerCase() === "reversed";
++
++              return (
++                <article key={`${card.positionOrder}-${card.cardId}`} className="drawn-card-panel">
++                  <span className="drawn-position-number">{card.positionOrder}</span>
++                  <h2>{card.positionTitle}</h2>
++                  <p className="drawn-position-prompt">{card.positionDescription}</p>
++
++                  <div className={`tarot-face-frame ${isReversed ? "is-reversed" : ""}`}>
++                    <GenericTarotFace label={card.cardName} />
++                  </div>
++
++                  <h3>{card.cardName}</h3>
++                  <p className="drawn-arcana">{card.suit ?? card.arcana}</p>
++                  <span className="orientation-badge">{card.orientation}</span>
++                  <p className="drawn-meaning">{card.meaning}</p>
++                </article>
++              );
++            })}
++        </section>
++
++        <aside className="reading-detail-aside">
++          <section className="reading-info-card">
++            <h2>About this reading</h2>
++
++            <div>
++              <span>Spread</span>
++              <p>{reading.spreadName}</p>
++            </div>
++
++            <div>
++              <span>Cards drawn</span>
++              <p>{createdAt}</p>
++            </div>
++
++            <div>
++              <span>Reading ID</span>
++              <p className="reading-id">{reading.id}</p>
++            </div>
++          </section>
++
++          <section className="reading-explore-card">
++            <h2>Keep exploring</h2>
++            <p>Return to your readings or create a new one.</p>
++
++            <Link href="/spreads">
++              <NewReadingIcon />
++              <span>New Reading</span>
++            </Link>
++
++            <Link href="/readings">
++              <ReadingsIcon />
++              <span>All Readings</span>
++            </Link>
++          </section>
++        </aside>
++      </div>
++
++      <p className="reading-reminder">Remember: You are the author of your story.</p>
++    </section>
++  );
++}
+diff --git a/app/(with-sidebar)/readings/new/page.tsx b/app/(with-sidebar)/readings/new/page.tsx
+index 9785ec6..b499579 100644
+--- a/app/(with-sidebar)/readings/new/page.tsx
++++ b/app/(with-sidebar)/readings/new/page.tsx
+@@ -1,128 +1,5 @@
+-import Link from "next/link";
+-import { TarotCardBack } from "@/components/icons/ArcanaIcons";
+-import { getSpreads } from "@/lib/api";
++import { redirect } from "next/navigation";
+ 
+-type NewReadingPageProps = {
+-  searchParams: Promise<{
+-    spread?: string | string[];
+-  }>;
+-};
+-
+-export default async function NewReadingPage({
+-  searchParams,
+-}: NewReadingPageProps) {
+-  const resolvedSearchParams = await searchParams;
+-
+-  const requestedSpreadKey = Array.isArray(resolvedSearchParams.spread)
+-    ? resolvedSearchParams.spread[0]
+-    : resolvedSearchParams.spread;
+-
+-  if (!requestedSpreadKey) {
+-    return (
+-      <section className="arcana-page">
+-        <header className="page-heading">
+-          <p className="page-eyebrow">Arcana AI</p>
+-
+-          <h1>New Reading</h1>
+-
+-          <p>
+-            Begin by selecting one of the predefined tarot spreads available
+-            in Arcana AI.
+-          </p>
+-        </header>
+-
+-        <div className="placeholder-panel">
+-          <h2>No spread selected</h2>
+-
+-          <p>
+-            A spread defines the number of cards and the purpose of each
+-            position in your reading.
+-          </p>
+-
+-          <Link href="/spreads" className="primary-action">
+-            Browse predefined spreads
+-          </Link>
+-        </div>
+-      </section>
+-    );
+-  }
+-
+-  const spreads = await getSpreads();
+-
+-  const selectedSpread = spreads.find(
+-    (spread) => spread.key === requestedSpreadKey,
+-  );
+-
+-  if (!selectedSpread) {
+-    return (
+-      <section className="arcana-page">
+-        <header className="page-heading">
+-          <p className="page-eyebrow">Arcana AI</p>
+-
+-          <h1>Spread not found</h1>
+-
+-          <p>
+-            The requested spread does not exist or is no longer available.
+-          </p>
+-        </header>
+-
+-        <div className="placeholder-panel">
+-          <Link href="/spreads" className="primary-action">
+-            Return to spreads
+-          </Link>
+-        </div>
+-      </section>
+-    );
+-  }
+-
+-  return (
+-    <section className="arcana-page">
+-      <header className="page-heading">
+-        <p className="page-eyebrow">New reading</p>
+-
+-        <h1>{selectedSpread.name}</h1>
+-
+-        <p>
+-          Review your selected spread before adding an optional question or
+-          personal context.
+-        </p>
+-      </header>
+-
+-      <div className="start-reading-panel">
+-        <TarotCardBack className="start-reading-card" />
+-
+-        <div className="start-reading-copy">
+-          <span className="start-reading-label">Selected spread</span>
+-
+-          <h2>{selectedSpread.name}</h2>
+-
+-          <p>{selectedSpread.shortDescription}</p>
+-
+-          <div className="start-reading-meta">
+-            <span>
+-              {selectedSpread.cardCount}{" "}
+-              {selectedSpread.cardCount === 1 ? "card" : "cards"}
+-            </span>
+-
+-            <span>{selectedSpread.intent}</span>
+-          </div>
+-        </div>
+-
+-        <Link href="/spreads" className="secondary-action">
+-          Change spread
+-        </Link>
+-      </div>
+-
+-      <div className="next-step-panel">
+-        <p className="page-eyebrow">Next implementation step</p>
+-
+-        <h2>Add your optional question</h2>
+-
+-        <p>
+-          The next frontend step will add the context field and connect this
+-          page to POST /api/readings.
+-        </p>
+-      </div>
+-    </section>
+-  );
+-}
+\ No newline at end of file
++export default function NewReadingPage() {
++  redirect("/spreads");
++}
+diff --git a/app/(with-sidebar)/readings/page.tsx b/app/(with-sidebar)/readings/page.tsx
+index c8276af..512b975 100644
+--- a/app/(with-sidebar)/readings/page.tsx
++++ b/app/(with-sidebar)/readings/page.tsx
+@@ -1,24 +1,27 @@
+-export default function ReadingsPage() {
+-  return (
+-    <section className="arcana-page">
+-      <header className="page-heading">
+-        <p className="page-eyebrow">Arcana AI</p>
++import { ReadingHistory } from "@/components/readings/ReadingHistory";
++import { getReadings } from "@/lib/api";
+ 
+-        <h1>Your Readings</h1>
++type ReadingsPageProps = {
++  searchParams: Promise<{
++    page?: string | string[];
++  }>;
++};
+ 
+-        <p>
+-          Your saved tarot journeys and insights will appear here.
+-        </p>
+-      </header>
++export default async function ReadingsPage({ searchParams }: ReadingsPageProps) {
++  const resolved = await searchParams;
++  const rawPage = Array.isArray(resolved.page) ? resolved.page[0] : resolved.page;
++  const parsedPage = Number.parseInt(rawPage ?? "1", 10);
++  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
++  const result = await getReadings(page, 5);
+ 
+-      <div className="placeholder-panel">
+-        <h2>Reading history is coming next</h2>
++  return (
++    <section className="readings-page">
++      <header className="reference-page-heading readings-heading">
++        <h1>Your Readings</h1>
++        <p>A collection of your journeys and insights.</p>
++      </header>
+ 
+-        <p>
+-          This page will be connected to the paginated GET /api/readings
+-          endpoint after the create-reading flow is complete.
+-        </p>
+-      </div>
++      <ReadingHistory result={result} />
+     </section>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/app/(with-sidebar)/spreads/[spreadKey]/page.tsx b/app/(with-sidebar)/spreads/[spreadKey]/page.tsx
+new file mode 100644
+index 0000000..610c151
+--- /dev/null
++++ b/app/(with-sidebar)/spreads/[spreadKey]/page.tsx
+@@ -0,0 +1,45 @@
++import { notFound } from "next/navigation";
++import { BrandMarkIcon } from "@/components/icons/ArcanaIcons";
++import { CreateReadingForm } from "@/components/readings/CreateReadingForm";
++import { getSpreadByKey } from "@/lib/api";
++
++type SpreadDetailPageProps = {
++  params: Promise<{
++    spreadKey: string;
++  }>;
++};
++
++function getDisplayName(name: string): string {
++  return name
++    .replace(" Tarot Spread", " Spread")
++    .replace("Three-Card", "Three Card")
++    .replace("Five-Card", "Five Card")
++    .replace("One-Card", "One Card");
++}
++
++export default async function SpreadDetailPage({ params }: SpreadDetailPageProps) {
++  const { spreadKey } = await params;
++  const spread = await getSpreadByKey(spreadKey);
++
++  if (!spread) {
++    notFound();
++  }
++
++  return (
++    <section className="spread-detail-page">
++      <BrandMarkIcon className="spread-detail-star" aria-hidden="true" />
++
++      <header className="spread-detail-heading">
++        <h1>{getDisplayName(spread.name)}</h1>
++        <span>{spread.shortDescription}</span>
++      </header>
++
++      <section className="spread-about-section">
++        <h2>About this spread</h2>
++        <p>{spread.description}</p>
++      </section>
++
++      <CreateReadingForm spread={spread} />
++    </section>
++  );
++}
+diff --git a/app/(with-sidebar)/spreads/error.tsx b/app/(with-sidebar)/spreads/error.tsx
+index 7416b12..9b841c6 100644
+--- a/app/(with-sidebar)/spreads/error.tsx
++++ b/app/(with-sidebar)/spreads/error.tsx
+@@ -6,21 +6,17 @@ type SpreadsErrorProps = {
+ 
+ export default function SpreadsError({ reset }: SpreadsErrorProps) {
+   return (
+-    <section className="arcana-page error-page">
++    <section className="error-page">
+       <div className="error-panel">
+-        <p className="page-eyebrow">Connection error</p>
+-
+         <h1>The spreads could not be loaded</h1>
+-
+         <p>
+           Confirm that the ASP.NET Core API is running on port 5000, then try
+           the request again.
+         </p>
+-
+         <button type="button" onClick={reset}>
+           Try again
+         </button>
+       </div>
+     </section>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/app/(with-sidebar)/spreads/loading.tsx b/app/(with-sidebar)/spreads/loading.tsx
+index 23581ae..8d4dd0e 100644
+--- a/app/(with-sidebar)/spreads/loading.tsx
++++ b/app/(with-sidebar)/spreads/loading.tsx
+@@ -1,27 +1,21 @@
+ export default function LoadingSpreadsPage() {
+   return (
+-    <section
+-      className="arcana-page"
+-      aria-busy="true"
+-      aria-label="Loading tarot spreads"
+-    >
+-      <header className="page-heading">
+-        <div className="skeleton skeleton-eyebrow" />
++    <section className="choose-spread-page" aria-busy="true" aria-label="Loading tarot spreads">
++      <header className="reference-page-heading">
+         <div className="skeleton skeleton-title" />
+         <div className="skeleton skeleton-subtitle" />
+       </header>
+ 
+-      <div className="catalog-controls">
+-        <div className="skeleton skeleton-control skeleton-search" />
++      <div className="spread-toolbar">
+         <div className="skeleton skeleton-control" />
+         <div className="skeleton skeleton-control" />
+       </div>
+ 
+-      <div className="spread-list">
+-        {Array.from({ length: 5 }).map((_, index) => (
++      <div className="spread-card-grid">
++        {Array.from({ length: 6 }).map((_, index) => (
+           <div className="skeleton skeleton-spread-row" key={index} />
+         ))}
+       </div>
+     </section>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/app/(with-sidebar)/spreads/page.tsx b/app/(with-sidebar)/spreads/page.tsx
+index 9d085e9..3943c41 100644
+--- a/app/(with-sidebar)/spreads/page.tsx
++++ b/app/(with-sidebar)/spreads/page.tsx
+@@ -1,3 +1,5 @@
++import Link from "next/link";
++import { ArrowLeftIcon } from "@/components/icons/ArcanaIcons";
+ import { SpreadCatalog } from "@/components/spreads/SpreadCatalog";
+ import { getSpreads } from "@/lib/api";
+ 
+@@ -5,19 +7,18 @@ export default async function SpreadsPage() {
+   const spreads = await getSpreads();
+ 
+   return (
+-    <section className="arcana-page">
+-      <header className="page-heading">
+-        <p className="page-eyebrow">Arcana AI</p>
++    <section className="choose-spread-page">
++      <Link href="/" className="page-back-link">
++        <ArrowLeftIcon />
++        <span>New Reading</span>
++      </Link>
+ 
+-        <h1>Predefined Spreads</h1>
+-
+-        <p>
+-          Explore the reading structures available in Arcana AI and choose the
+-          one that best matches the guidance or reflection you are seeking.
+-        </p>
++      <header className="reference-page-heading">
++        <h1>Choose a spread</h1>
++        <p>Select a spread that fits your question or intention.</p>
+       </header>
+ 
+       <SpreadCatalog spreads={spreads} />
+     </section>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/app/globals.css b/app/globals.css
+index aa75dc3..db4b6a1 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -2,30 +2,24 @@
+ 
+ :root {
+   color-scheme: dark;
+-
+-  --background: #070816;
+-  --background-soft: #0a0b1b;
+-  --sidebar: #090a18;
+-
+-  --surface: #0e0f20;
+-  --surface-hover: #141529;
+-  --surface-selected: #19152d;
+-
+-  --border: #2a2a43;
+-  --border-strong: #4e3d6d;
+-
+-  --foreground: #f1eadf;
+-  --muted: #a5a0b6;
+-  --subtle: #747087;
+-
+-  --primary: #6f4b9d;
+-  --primary-soft: #2a1e42;
+-
+-  --gold: #d3ad71;
+-  --gold-soft: #9d7b4e;
+-
+-  --danger: #e28b8b;
+-  --focus: #c7a1f3;
++  --bg: #070815;
++  --bg-deep: #050611;
++  --panel: #0d0e20;
++  --panel-soft: #111126;
++  --panel-violet: #1b1530;
++  --line: #292840;
++  --line-light: #493951;
++  --cream: #f4eadc;
++  --body: #c1b9c5;
++  --muted: #898293;
++  --purple: #5a347f;
++  --purple-light: #885cae;
++  --gold: #d9aa69;
++  --rose: #a5657f;
++  --focus: #d1a4ef;
++  --danger: #ef9c9c;
++  --heading-font: Georgia, "Times New Roman", serif;
++  --body-font: var(--font-geist-sans), Arial, sans-serif;
+ }
+ 
+ * {
+@@ -37,16 +31,17 @@ body {
+   min-height: 100%;
+ }
+ 
++html {
++  background: var(--bg);
++}
++
+ body {
+   margin: 0;
+-  background: var(--background);
+-  color: var(--foreground);
+-  font-family:
+-    var(--font-geist-sans),
+-    Inter,
+-    ui-sans-serif,
+-    system-ui,
+-    sans-serif;
++  background: var(--bg);
++  color: var(--cream);
++  font-family: var(--body-font);
++  -webkit-font-smoothing: antialiased;
++  text-rendering: optimizeLegibility;
+ }
+ 
+ button,
+@@ -58,7 +53,6 @@ textarea {
+ 
+ button,
+ a,
+-label,
+ select {
+   -webkit-tap-highlight-color: transparent;
+ }
+@@ -68,6 +62,11 @@ a {
+   text-decoration: none;
+ }
+ 
++::selection {
++  background: rgba(113, 72, 148, 0.6);
++  color: #fff;
++}
++
+ .sr-only {
+   position: absolute;
+   width: 1px;
+@@ -81,72 +80,59 @@ a {
+ }
+ 
+ /* =========================================================
+-   Application shell
++   Shared application shell and sidebar
+    ========================================================= */
+ 
+ .arcana-shell {
+   min-height: 100vh;
+   display: grid;
+   grid-template-columns: 240px minmax(0, 1fr);
+-
+   background:
+-    radial-gradient(
+-      circle at 76% 16%,
+-      rgba(70, 45, 102, 0.12),
+-      transparent 28rem
+-    ),
+-    linear-gradient(145deg, #080918 0%, #070816 62%, #090a19 100%);
++    radial-gradient(circle at 87% 6%, rgba(80, 52, 108, 0.12), transparent 28rem),
++    radial-gradient(circle at 16% 63%, rgba(65, 41, 91, 0.08), transparent 26rem),
++    #070815;
+ }
+ 
+ .arcana-main {
++  position: relative;
+   min-width: 0;
+-  padding: 43px 38px 72px;
++  min-height: 100vh;
++  overflow: hidden;
++  padding: 42px 44px 40px;
++  background:
++    radial-gradient(circle at 82% 17%, rgba(217, 170, 105, 0.5) 0 1px, transparent 1.6px) 0 0 / 93px 81px,
++    radial-gradient(circle at 14% 64%, rgba(141, 91, 154, 0.34) 0 1px, transparent 1.5px) 15px 31px / 127px 111px,
++    linear-gradient(145deg, rgba(9, 9, 25, 0.99), rgba(6, 7, 18, 0.99));
+ }
+ 
+-.arcana-page {
+-  width: min(100%, 1030px);
+-  margin: 0 auto;
++.arcana-main::after {
++  content: "";
++  position: absolute;
++  inset: 0;
++  z-index: 0;
++  pointer-events: none;
++  background: radial-gradient(circle at 54% 34%, transparent 0, transparent 19rem, rgba(0, 0, 0, 0.16) 45rem);
+ }
+ 
+-/* =========================================================
+-   Sidebar
+-   ========================================================= */
++.arcana-main > * {
++  position: relative;
++  z-index: 1;
++}
+ 
+ .arcana-sidebar {
+   position: sticky;
+   top: 0;
+   z-index: 30;
+-
+   display: flex;
+-  min-height: 100vh;
+   height: 100vh;
++  min-height: 680px;
+   flex-direction: column;
+-
+-  overflow-x: hidden;
+-  overflow-y: auto;
+-
+-  padding: 38px 24px 26px;
+-
+-  border-right: 1px solid rgba(94, 83, 126, 0.35);
+-
++  overflow: hidden;
++  padding: 40px 24px 22px;
++  border-right: 1px solid rgba(67, 61, 92, 0.6);
+   background:
+-    radial-gradient(
+-      circle at 20% 72%,
+-      rgba(98, 57, 125, 0.18),
+-      transparent 19rem
+-    ),
+-    radial-gradient(
+-        circle at 15% 22%,
+-        rgba(210, 173, 113, 0.07) 0 1px,
+-        transparent 1.5px
+-      )
+-      0 0 / 42px 42px,
+-    linear-gradient(
+-      180deg,
+-      rgba(10, 11, 27, 0.98),
+-      rgba(8, 9, 23, 0.99)
+-    );
+-
++    radial-gradient(circle at 30% 22%, rgba(83, 52, 114, 0.12), transparent 20rem),
++    linear-gradient(180deg, #090a1a 0%, #080918 45%, #070815 100%);
+   box-shadow: 18px 0 42px rgba(0, 0, 0, 0.22);
+ }
+ 
+@@ -159,754 +145,1463 @@ a {
+ .sidebar-brand {
+   display: inline-flex;
+   align-items: center;
+-  gap: 11px;
+-
+-  color: var(--foreground);
+-
+-  font-family: Georgia, "Times New Roman", serif;
++  gap: 10px;
++  width: fit-content;
++  color: var(--cream);
++  font-family: var(--heading-font);
+   font-size: 25px;
+   font-weight: 700;
+-  letter-spacing: -0.02em;
++  line-height: 1;
++  text-shadow: 0 1px 8px rgba(225, 183, 135, 0.18);
+ }
+ 
+ .sidebar-brand-icon {
+-  width: 32px;
+-  height: 32px;
+-
+-  color: #d6a7d9;
+-
+-  filter: drop-shadow(0 0 9px rgba(199, 130, 213, 0.32));
++  width: 38px;
++  height: 38px;
++  color: #d3a3cf;
++  filter: drop-shadow(0 0 9px rgba(197, 124, 203, 0.3));
+ }
+ 
+-.sidebar-close-button,
+-.mobile-menu-button {
+-  display: none;
++.sidebar-back-link {
++  display: inline-flex;
+   align-items: center;
+-  justify-content: center;
+-
+-  border: 1px solid var(--border);
+-  border-radius: 10px;
+-
+-  background: rgba(16, 17, 36, 0.94);
+-  color: var(--foreground);
+-
+-  cursor: pointer;
++  gap: 9px;
++  color: var(--cream);
++  font-family: var(--heading-font);
++  font-size: 20px;
++  font-weight: 700;
+ }
+ 
+-.sidebar-close-button svg,
+-.mobile-menu-button svg {
++.sidebar-back-link svg {
+   width: 22px;
+   height: 22px;
+ }
+ 
++.sidebar-back-link:hover {
++  color: var(--gold);
++}
++
+ .sidebar-nav {
+   display: grid;
+-  gap: 8px;
+-  margin-top: 46px;
++  gap: 10px;
++  margin-top: 45px;
+ }
+ 
+ .sidebar-nav-link {
+   display: flex;
+   min-height: 56px;
+   align-items: center;
+-  gap: 15px;
+-
+-  padding: 0 17px;
+-
++  gap: 14px;
++  padding: 0 16px;
+   border: 1px solid transparent;
+-  border-radius: 12px;
+-
+-  color: #d9d2de;
+-
+-  font-size: 16px;
+-  font-weight: 650;
+-
+-  transition:
+-    background 150ms ease,
+-    border-color 150ms ease,
+-    color 150ms ease,
+-    transform 150ms ease;
++  border-radius: 11px;
++  color: #e4dce1;
++  font-family: var(--heading-font);
++  font-size: 18px;
++  font-weight: 700;
++  transition: 150ms ease;
+ }
+ 
+ .sidebar-nav-link svg {
+   width: 23px;
+   height: 23px;
+-
+   flex: 0 0 auto;
+-
+-  color: #e4d9d0;
++  color: #ece2d5;
+ }
+ 
+ .sidebar-nav-link:hover {
+   transform: translateX(2px);
+-
+-  background: rgba(36, 28, 56, 0.62);
+-  color: #fff9f0;
+-}
+-
+-.sidebar-nav-link:focus-visible {
+-  outline: 2px solid var(--focus);
+-  outline-offset: 3px;
++  background: rgba(43, 31, 63, 0.55);
+ }
+ 
+ .sidebar-nav-link.is-active {
+-  border-color: rgba(121, 88, 164, 0.32);
+-
+-  background: linear-gradient(
+-    135deg,
+-    rgba(61, 43, 88, 0.92),
+-    rgba(36, 27, 59, 0.94)
+-  );
+-
+-  color: #fffaf2;
+-
++  border-color: rgba(99, 70, 131, 0.44);
++  background: linear-gradient(135deg, #2e2147, #20172f);
+   box-shadow:
+     inset 0 1px 0 rgba(255, 255, 255, 0.035),
+-    0 12px 30px rgba(0, 0, 0, 0.18);
++    0 12px 30px rgba(0, 0, 0, 0.17);
+ }
+ 
+ .sidebar-nav-link.is-active svg {
+-  color: #e7c38b;
++  color: #e9bd7c;
+ }
+ 
+-.sidebar-artwork {
+-  position: relative;
+-
+-  margin: auto -24px -34px;
++.sidebar-nav-link:focus-visible,
++.sidebar-brand:focus-visible {
++  outline: 2px solid var(--focus);
++  outline-offset: 3px;
++}
+ 
+-  opacity: 0.94;
++.sidebar-artwork {
++  position: absolute;
++  right: 0;
++  bottom: 106px;
++  left: 0;
++  height: 310px;
++  pointer-events: none;
++  opacity: 0.98;
+ }
+ 
+ .sidebar-artwork svg {
+-  display: block;
+   width: 100%;
+-  height: auto;
++  height: 100%;
+ }
+ 
+ .sidebar-quote {
+   position: relative;
+-  z-index: 1;
+-
++  z-index: 2;
+   display: grid;
+   justify-items: center;
+-
+-  margin-top: 8px;
+-  padding: 19px 16px;
+-
+-  border: 1px solid rgba(73, 60, 98, 0.34);
+-  border-radius: 12px;
+-
+-  background: linear-gradient(
+-    180deg,
+-    rgba(20, 18, 39, 0.94),
+-    rgba(12, 13, 30, 0.94)
+-  );
+-
+-  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.2);
+-
++  margin-top: auto;
++  padding: 15px 12px 17px;
++  border: 1px solid rgba(72, 61, 96, 0.52);
++  border-radius: 11px;
++  background: linear-gradient(180deg, rgba(18, 17, 38, 0.97), rgba(11, 12, 27, 0.98));
++  box-shadow: 0 15px 33px rgba(0, 0, 0, 0.25);
+   text-align: center;
+ }
+ 
+ .sidebar-quote svg {
+-  width: 27px;
+-  height: 27px;
+-
+-  margin-bottom: 10px;
+-
+-  color: #d49bcf;
++  width: 28px;
++  height: 28px;
++  margin-bottom: 8px;
++  color: #d49ed0;
+ }
+ 
+ .sidebar-quote p,
+ .sidebar-quote span {
+   margin: 0;
+-
+-  font-family: Georgia, "Times New Roman", serif;
++  font-family: var(--heading-font);
+ }
+ 
+ .sidebar-quote p {
+-  color: #eee4dc;
+-  font-size: 16px;
++  color: #eee3d9;
++  font-size: 17px;
+ }
+ 
+ .sidebar-quote span {
+-  margin-top: 4px;
+-
+-  color: #b3a9b9;
++  margin-top: 2px;
++  color: #b6acb8;
+   font-size: 14px;
+ }
+ 
++.sidebar-close-button,
++.mobile-menu-button,
+ .sidebar-backdrop {
+   display: none;
+ }
+ 
+ /* =========================================================
+-   Page headings
++   Shared page typography
+    ========================================================= */
+ 
+-.page-heading {
+-  margin-bottom: 31px;
+-}
+-
+-.page-eyebrow {
+-  margin: 0 0 10px;
+-
+-  color: var(--gold);
+-
+-  font-size: 12px;
+-  font-weight: 750;
+-  letter-spacing: 0.22em;
+-  text-transform: uppercase;
+-}
+-
+-.page-heading h1,
+-.error-panel h1 {
++.reference-page-heading h1,
++.reading-detail-heading h1,
++.spread-detail-heading h1 {
+   margin: 0;
+-
+-  color: #f5ede2;
+-
+-  font-family: Georgia, "Times New Roman", serif;
+-  font-size: clamp(39px, 5vw, 54px);
+-  line-height: 1.04;
++  color: var(--cream);
++  font-family: var(--heading-font);
++  font-size: clamp(42px, 5vw, 54px);
++  font-weight: 700;
++  line-height: 1.02;
+   letter-spacing: -0.025em;
++  text-shadow: 0 2px 16px rgba(216, 174, 119, 0.09);
++}
+ 
+-  text-shadow: 0 2px 20px rgba(222, 189, 143, 0.08);
++.reference-page-heading p,
++.spread-detail-heading > span,
++.reading-detail-heading p {
++  margin: 10px 0 0;
++  color: #bdb4c0;
++  font-family: var(--heading-font);
++  font-size: 20px;
++  line-height: 1.4;
+ }
+ 
+-.page-heading > p:last-child,
+-.error-panel > p:not(.page-eyebrow) {
+-  max-width: 690px;
++.page-back-link {
++  display: inline-flex;
++  align-items: center;
++  gap: 8px;
++  width: fit-content;
++  margin-bottom: 16px;
++  color: #e7ddd6;
++  font-family: var(--heading-font);
++  font-size: 17px;
++  font-weight: 700;
++}
+ 
+-  margin: 13px 0 0;
++.page-back-link svg {
++  width: 20px;
++  height: 20px;
++}
+ 
+-  color: var(--muted);
++.page-back-link:hover {
++  color: var(--gold);
++}
+ 
+-  font-size: 16px;
+-  line-height: 1.65;
++.page-back-link:focus-visible {
++  border-radius: 5px;
++  outline: 2px solid var(--focus);
++  outline-offset: 4px;
+ }
+ 
+ /* =========================================================
+-   Spread catalogue controls
++   Homepage
+    ========================================================= */
+ 
+-.catalog-controls {
+-  display: grid;
+-  grid-template-columns: minmax(250px, 1fr) 175px 180px;
+-  gap: 12px;
++.landing-page {
++  position: relative;
++  display: flex;
++  min-height: calc(100vh - 82px);
++  flex-direction: column;
++  align-items: center;
++  padding: 54px 10px 28px;
++  text-align: center;
++}
+ 
+-  margin-bottom: 20px;
++.landing-wheel {
++  position: absolute;
++  top: -12px;
++  left: 50%;
++  width: min(720px, 98%);
++  height: 560px;
++  transform: translateX(-50%);
++  color: #c19078;
++  opacity: 0.65;
++  pointer-events: none;
+ }
+ 
+-.catalog-search,
+-.catalog-select-wrapper {
++.landing-content {
+   position: relative;
+-
++  z-index: 2;
+   display: flex;
+-  min-height: 56px;
++  flex-direction: column;
+   align-items: center;
+-
+-  border: 1px solid var(--border);
+-  border-radius: 11px;
+-
+-  background: rgba(11, 12, 27, 0.82);
+-
+-  box-shadow:
+-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+-    0 10px 28px rgba(0, 0, 0, 0.12);
+-
+-  transition:
+-    border-color 150ms ease,
+-    box-shadow 150ms ease;
+ }
+ 
+-.catalog-search:focus-within,
+-.catalog-select-wrapper:focus-within {
+-  border-color: var(--focus);
+-  box-shadow: 0 0 0 3px rgba(159, 111, 211, 0.17);
++.landing-welcome {
++  margin: 28px 0 0;
++  color: var(--cream);
++  font-family: var(--heading-font);
++  font-size: 34px;
++  font-weight: 700;
+ }
+ 
+-.catalog-search > svg {
+-  width: 23px;
+-  height: 23px;
+-
+-  margin-left: 15px;
+-
+-  color: #9891aa;
++.landing-content h1 {
++  margin: -1px 0 0;
++  color: #f7ead8;
++  font-family: var(--heading-font);
++  font-size: clamp(62px, 8vw, 82px);
++  font-weight: 700;
++  line-height: 1;
++  text-shadow: 0 3px 24px rgba(225, 184, 126, 0.13);
+ }
+ 
+-.catalog-search input,
+-.catalog-select-wrapper select {
+-  width: 100%;
+-  min-width: 0;
+-
+-  border: 0;
+-  outline: 0;
+-
+-  background: transparent;
+-  color: #e7dfdb;
++.landing-tagline {
++  margin: 16px 0 0;
++  color: #c5bdc7;
++  font-family: var(--heading-font);
++  font-size: 19px;
+ }
+ 
+-.catalog-search input {
+-  height: 54px;
+-  padding: 0 15px 0 11px;
++.landing-description {
++  margin: 25px 0 0;
++  color: #c8bec8;
++  font-family: var(--heading-font);
++  font-size: 18px;
++  line-height: 1.65;
+ }
+ 
+-.catalog-search input::placeholder {
+-  color: #807a90;
++.landing-primary-action {
++  display: inline-flex;
++  width: min(370px, 100%);
++  min-height: 72px;
++  align-items: center;
++  justify-content: center;
++  gap: 12px;
++  margin-top: 32px;
++  border: 1px solid #8255aa;
++  border-radius: 13px;
++  background: linear-gradient(135deg, #65408a, #3b205d);
++  color: #fff6ee;
++  font-family: var(--heading-font);
++  font-size: 23px;
++  font-weight: 700;
++  box-shadow:
++    inset 0 1px 0 rgba(255, 255, 255, 0.12),
++    0 15px 34px rgba(0, 0, 0, 0.3);
++  transition: 150ms ease;
+ }
+ 
+-.catalog-select-wrapper select {
+-  height: 54px;
+-
+-  appearance: none;
+-  cursor: pointer;
++.landing-primary-action svg {
++  width: 24px;
++  height: 24px;
++}
+ 
+-  padding: 0 42px 0 15px;
++.landing-primary-action:hover {
++  transform: translateY(-2px);
++  background: linear-gradient(135deg, #76509b, #47286c);
+ }
+ 
+-.catalog-select-wrapper > svg {
+-  position: absolute;
+-  right: 14px;
++.landing-readings-link {
++  display: inline-flex;
++  align-items: center;
++  gap: 8px;
++  margin-top: 22px;
++  color: #d4c9d3;
++  font-family: var(--heading-font);
++  font-size: 18px;
++  font-weight: 700;
++}
+ 
++.landing-readings-link svg {
+   width: 20px;
+   height: 20px;
++}
+ 
+-  pointer-events: none;
++.landing-primary-action:focus-visible,
++.landing-readings-link:focus-visible {
++  outline: 2px solid var(--focus);
++  outline-offset: 4px;
++}
+ 
+-  color: #aaa2b5;
++.landing-divider {
++  width: 100%;
++  max-width: 700px;
++  height: 1px;
++  margin-top: 52px;
++  background: linear-gradient(90deg, transparent, rgba(78, 71, 101, 0.7), transparent);
+ }
+ 
+-/* =========================================================
+-   Spread rows
+-   ========================================================= */
++.how-it-works {
++  width: 100%;
++  max-width: 760px;
++  padding-top: 28px;
++}
++
++.how-it-works > h2 {
++  margin: 0;
++  font-family: var(--heading-font);
++  font-size: 30px;
++  font-weight: 700;
++}
+ 
+-.spread-list {
++.how-it-works-grid {
+   display: grid;
+-  gap: 12px;
++  grid-template-columns: repeat(4, minmax(0, 1fr));
++  gap: 18px;
++  margin-top: 24px;
++}
+ 
++.how-step {
++  display: grid;
++  justify-items: center;
+   min-width: 0;
+ }
+ 
+-.spread-row {
++.how-step-icon {
+   display: grid;
+-  grid-template-columns: 52px minmax(0, 1fr) auto 24px;
+-
+-  min-height: 111px;
+-  align-items: center;
+-  gap: 18px;
++  width: 66px;
++  height: 66px;
++  place-items: center;
++  border: 2px solid #9d5e79;
++  border-radius: 50%;
++  background: #111124;
++  box-shadow: inset 0 0 0 5px #0a0b18;
++}
+ 
+-  padding: 14px 18px;
++.how-step-icon svg {
++  width: 32px;
++  height: 32px;
++  color: #e2b978;
++}
+ 
+-  border: 1px solid var(--border);
+-  border-radius: 13px;
++.how-step h3 {
++  margin: 14px 0 0;
++  font-family: var(--heading-font);
++  font-size: 17px;
++  line-height: 1.25;
++}
+ 
+-  background:
+-    linear-gradient(
+-      90deg,
+-      rgba(16, 17, 35, 0.96),
+-      rgba(10, 11, 26, 0.96)
+-    ),
+-    var(--surface);
++.how-step p {
++  margin: 8px 0 0;
++  color: #b4aab7;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  line-height: 1.45;
++}
+ 
+-  box-shadow:
+-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+-    0 13px 28px rgba(0, 0, 0, 0.12);
++/* =========================================================
++   Choose a spread page
++   ========================================================= */
+ 
+-  cursor: pointer;
++.choose-spread-page,
++.readings-page,
++.about-page,
++.spread-detail-page,
++.reading-detail-page {
++  width: min(100%, 930px);
++  margin: 0 auto;
++}
+ 
+-  transition:
+-    transform 150ms ease,
+-    background 150ms ease,
+-    border-color 150ms ease,
+-    box-shadow 150ms ease;
++.choose-spread-page {
++  max-width: 700px;
+ }
+ 
+-.spread-row:hover {
+-  transform: translateY(-1px);
++.reference-page-heading {
++  margin-bottom: 22px;
++}
+ 
+-  border-color: #4a3b61;
++.spread-toolbar {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 195px;
++  gap: 14px;
++  margin-bottom: 20px;
++}
+ 
+-  background: linear-gradient(
+-    90deg,
+-    rgba(23, 22, 46, 0.98),
+-    rgba(13, 14, 31, 0.98)
+-  );
++.spread-search,
++.spread-category-select,
++.history-search,
++.history-select {
++  position: relative;
++  display: flex;
++  min-height: 56px;
++  align-items: center;
++  border: 1px solid #302d48;
++  border-radius: 10px;
++  background: rgba(10, 11, 26, 0.9);
++  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
++}
+ 
+-  box-shadow:
+-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+-    0 17px 36px rgba(0, 0, 0, 0.18);
++.spread-search:focus-within,
++.spread-category-select:focus-within,
++.history-search:focus-within,
++.history-select:focus-within {
++  border-color: #8e65a8;
++  box-shadow: 0 0 0 3px rgba(129, 83, 161, 0.16);
+ }
+ 
+-.spread-row:focus-visible {
+-  outline: 2px solid var(--focus);
+-  outline-offset: 3px;
++.spread-search > svg,
++.history-search > svg {
++  width: 22px;
++  height: 22px;
++  margin-left: 14px;
++  color: #b7acb9;
+ }
+ 
+-.spread-card-back {
+-  display: block;
++.spread-search input,
++.history-search input,
++.spread-category-select select,
++.history-select select {
++  width: 100%;
++  height: 54px;
++  border: 0;
++  outline: 0;
++  background: transparent;
++  color: #e8ded8;
++}
+ 
+-  width: 52px;
+-  height: 76px;
++.spread-search input,
++.history-search input {
++  padding: 0 14px 0 10px;
++}
+ 
+-  filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.28));
++.spread-search input::placeholder,
++.history-search input::placeholder {
++  color: #8b8392;
+ }
+ 
+-.spread-copy {
+-  display: grid;
+-  min-width: 0;
+-  gap: 5px;
++.spread-category-select select,
++.history-select select {
++  appearance: none;
++  padding: 0 43px 0 14px;
++  cursor: pointer;
+ }
+ 
+-.spread-copy strong {
+-  overflow: hidden;
+-
+-  color: #f3ece3;
+-
+-  font-family: Georgia, "Times New Roman", serif;
+-  font-size: 19px;
+-  font-weight: 700;
++.spread-category-select > svg,
++.history-select > svg {
++  position: absolute;
++  right: 13px;
++  width: 20px;
++  height: 20px;
++  pointer-events: none;
++  color: #c8bdc6;
++}
+ 
+-  text-overflow: ellipsis;
+-  white-space: nowrap;
++.spread-card-grid {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 12px;
+ }
+ 
+-.spread-description {
+-  color: #b6afbd;
++.spread-option-card {
++  display: flex;
++  min-height: 270px;
++  flex-direction: column;
++  padding: 22px 20px 18px;
++  border: 1px solid #5f4058;
++  border-radius: 12px;
++  background: linear-gradient(145deg, rgba(18, 17, 39, 0.98), rgba(10, 11, 25, 0.98));
++  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
++  transition: 150ms ease;
++}
+ 
+-  font-size: 14px;
+-  line-height: 1.45;
++.spread-option-card:hover {
++  transform: translateY(-2px);
++  border-color: #a36a85;
++  background: linear-gradient(145deg, rgba(28, 22, 48, 0.98), rgba(13, 13, 30, 0.98));
++  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
+ }
+ 
+-.spread-intent {
+-  overflow: hidden;
++.spread-option-card:focus-visible {
++  outline: 2px solid var(--focus);
++  outline-offset: 3px;
++}
+ 
+-  color: #797488;
++.spread-preview {
++  position: relative;
++  width: 100%;
++  height: 104px;
++  margin-bottom: 9px;
++}
+ 
+-  font-size: 12px;
++.spread-preview svg {
++  position: absolute;
++  width: 52px;
++  height: 78px;
++  filter: drop-shadow(0 8px 11px rgba(0, 0, 0, 0.35));
++}
++
++.spread-preview-1 svg:nth-child(1) { left: 9px; top: 0; }
++.spread-preview-2 svg:nth-child(1) { left: 2px; top: 2px; }
++.spread-preview-2 svg:nth-child(2) { left: 58px; top: 2px; }
++.spread-preview-3 svg:nth-child(1) { left: 0; top: 4px; }
++.spread-preview-3 svg:nth-child(2) { left: 51px; top: 0; }
++.spread-preview-3 svg:nth-child(3) { left: 102px; top: 4px; }
++.spread-preview-4 svg:nth-child(1) { left: 0; top: 16px; }
++.spread-preview-4 svg:nth-child(2) { left: 46px; top: 0; }
++.spread-preview-4 svg:nth-child(3) { left: 46px; top: 50px; }
++.spread-preview-4 svg:nth-child(4) { left: 92px; top: 24px; }
++.spread-preview-5 svg:nth-child(1) { left: 0; top: 27px; }
++.spread-preview-5 svg:nth-child(2) { left: 39px; top: 0; }
++.spread-preview-5 svg:nth-child(3) { left: 39px; top: 51px; }
++.spread-preview-5 svg:nth-child(4) { left: 78px; top: 24px; }
++.spread-preview-5 svg:nth-child(5) { left: 117px; top: 45px; }
++.spread-preview-relationship svg:nth-child(1) { left: 0; top: 10px; transform: rotate(-2deg); }
++.spread-preview-relationship svg:nth-child(2) { left: 52px; top: 0; }
++.spread-preview-relationship svg:nth-child(3) { left: 52px; top: 48px; }
++
++.spread-option-card h2 {
++  margin: 0;
++  font-family: var(--heading-font);
++  font-size: 24px;
++  line-height: 1.1;
++}
+ 
+-  text-overflow: ellipsis;
+-  white-space: nowrap;
++.spread-option-card p {
++  margin: 8px 0 0;
++  color: #c2b7c3;
++  font-family: var(--heading-font);
++  font-size: 17px;
++  line-height: 1.35;
+ }
+ 
+-.spread-count {
+-  justify-self: end;
++.spread-option-card > span {
++  margin-top: auto;
++  padding-top: 6px;
++  color: #d9b47b;
++  font-family: var(--heading-font);
++  font-size: 16px;
++}
+ 
+-  white-space: nowrap;
++.spread-help-banner {
++  display: flex;
++  min-height: 82px;
++  align-items: center;
++  gap: 17px;
++  margin-top: 18px;
++  padding: 14px 20px;
++  border: 1px solid #2d2b43;
++  border-radius: 11px;
++  background: rgba(13, 14, 30, 0.94);
++}
+ 
+-  padding: 7px 12px;
++.spread-help-banner > svg {
++  width: 42px;
++  height: 42px;
++  color: var(--gold);
++}
+ 
+-  border: 1px solid rgba(143, 105, 159, 0.72);
+-  border-radius: 999px;
++.spread-help-banner div {
++  display: grid;
++  gap: 3px;
++}
+ 
+-  background: rgba(32, 24, 47, 0.68);
+-  color: #e6ddd7;
++.spread-help-banner strong {
++  font-family: var(--heading-font);
++  font-size: 17px;
++}
+ 
+-  font-family: Georgia, "Times New Roman", serif;
+-  font-size: 14px;
+-  font-weight: 700;
++.spread-help-banner span {
++  color: #b9afba;
++  font-family: var(--heading-font);
++  font-size: 15px;
+ }
+ 
+-.spread-chevron {
+-  width: 22px;
+-  height: 22px;
++.spread-empty,
++.history-empty,
++.error-panel {
++  display: grid;
++  min-height: 300px;
++  place-items: center;
++  align-content: center;
++  border: 1px solid var(--line);
++  border-radius: 12px;
++  background: rgba(12, 13, 29, 0.9);
++  text-align: center;
++}
+ 
+-  color: #d7cfc9;
++.spread-empty > svg {
++  width: 46px;
++  height: 46px;
++  color: var(--gold);
++}
+ 
+-  transition:
+-    transform 150ms ease,
+-    color 150ms ease;
++.spread-empty h2,
++.history-empty h2 {
++  margin: 12px 0 0;
++  font-family: var(--heading-font);
++  font-size: 27px;
+ }
+ 
+-.spread-row:hover .spread-chevron {
+-  transform: translateX(2px);
++.spread-empty p,
++.history-empty p {
++  margin: 7px 0 0;
++  color: var(--body);
++}
+ 
+-  color: var(--gold);
++.history-empty a {
++  margin-top: 20px;
++  padding: 11px 18px;
++  border: 1px solid #745092;
++  border-radius: 9px;
++  background: #39244f;
+ }
+ 
+ /* =========================================================
+-   Empty and error states
++   Spread details and create reading
+    ========================================================= */
+ 
+-.catalog-empty-state,
+-.error-panel,
+-.placeholder-panel,
+-.next-step-panel {
+-  display: grid;
+-  justify-items: center;
+-
+-  padding: 62px 24px;
++.spread-detail-page {
++  position: relative;
++  max-width: 720px;
++}
+ 
+-  border: 1px solid var(--border);
+-  border-radius: 14px;
++.spread-detail-star {
++  position: absolute;
++  top: 35px;
++  right: 0;
++  width: 66px;
++  height: 66px;
++  color: #d39a62;
++  opacity: 0.9;
++}
+ 
+-  background: rgba(13, 14, 31, 0.82);
++.spread-detail-heading {
++  max-width: 540px;
++  padding-top: 22px;
++}
+ 
+-  text-align: center;
++.spread-detail-heading > span {
++  display: block;
++  margin-top: 8px;
++  font-size: 18px;
+ }
+ 
+-.catalog-empty-state svg {
+-  width: 50px;
+-  height: 50px;
++.spread-about-section {
++  max-width: 430px;
++  margin-top: 48px;
++}
+ 
+-  color: var(--gold);
++.spread-about-section h2,
++.spread-positions-section > h2,
++.question-panel h2 {
++  margin: 0;
++  font-family: var(--heading-font);
++  font-size: 24px;
+ }
+ 
+-.catalog-empty-state h2,
+-.placeholder-panel h2,
+-.next-step-panel h2 {
+-  margin: 16px 0 0;
++.spread-about-section p {
++  margin: 10px 0 0;
++  color: #bdb4c0;
++  font-family: var(--heading-font);
++  font-size: 16px;
++  line-height: 1.55;
++}
+ 
+-  color: #f1e9df;
++.spread-detail-form {
++  margin-top: 46px;
++}
+ 
+-  font-family: Georgia, "Times New Roman", serif;
+-  font-size: 24px;
++.spread-detail-columns {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 390px;
++  gap: 18px;
++  align-items: end;
+ }
+ 
+-.catalog-empty-state p,
+-.placeholder-panel p,
+-.next-step-panel > p:last-child {
+-  max-width: 630px;
++.spread-positions-section {
++  min-width: 0;
++}
+ 
+-  margin: 8px 0 0;
++.position-list {
++  margin-top: 15px;
++  overflow: hidden;
++  border: 1px solid #343047;
++  border-radius: 11px;
++  background: rgba(10, 11, 25, 0.94);
++}
+ 
+-  color: var(--muted);
++.position-row {
++  display: grid;
++  grid-template-columns: 28px minmax(0, 1fr);
++  gap: 12px;
++  min-height: 92px;
++  align-items: center;
++  padding: 14px 16px;
++  border-bottom: 1px solid #252437;
++}
+ 
+-  line-height: 1.65;
++.position-row:last-child {
++  border-bottom: 0;
+ }
+ 
+-.error-page {
++.position-number,
++.drawn-position-number {
+   display: grid;
+-  min-height: calc(100vh - 115px);
++  width: 25px;
++  height: 25px;
+   place-items: center;
++  border: 2px solid #a2697b;
++  border-radius: 50%;
++  color: #f0d7bb;
++  font-family: var(--heading-font);
++  font-size: 15px;
++  font-weight: 700;
+ }
+ 
+-.error-panel {
+-  width: min(100%, 650px);
++.position-row h3 {
++  margin: 0;
++  font-family: var(--heading-font);
++  font-size: 21px;
+ }
+ 
+-.error-panel button {
+-  margin-top: 24px;
+-  padding: 11px 18px;
+-
+-  border: 1px solid #7d5b9f;
+-  border-radius: 10px;
+-
+-  background: #34244e;
+-  color: #f8eef8;
++.position-row p {
++  margin: 5px 0 0;
++  color: #aaa1af;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  line-height: 1.35;
++}
+ 
+-  cursor: pointer;
++.spread-question-column {
++  display: grid;
++  gap: 18px;
+ }
+ 
+-/* =========================================================
+-   Buttons and links
+-   ========================================================= */
++.spread-card-preview-panel {
++  min-height: 220px;
++  padding: 28px 22px 17px;
++  border: 1px solid #443b50;
++  border-radius: 13px;
++  background: linear-gradient(145deg, rgba(21, 18, 38, 0.98), rgba(11, 12, 27, 0.98));
++}
+ 
+-.primary-action,
+-.secondary-action {
+-  display: inline-flex;
+-  min-height: 44px;
+-  align-items: center;
++.spread-detail-card-row {
++  display: flex;
++  align-items: flex-start;
+   justify-content: center;
++  gap: 8px;
++}
+ 
+-  padding: 0 18px;
++.spread-detail-card-item {
++  display: grid;
++  justify-items: center;
++  gap: 12px;
++}
+ 
+-  border-radius: 10px;
++.spread-detail-card-item svg {
++  width: 64px;
++  height: 96px;
++}
+ 
+-  font-size: 14px;
++.spread-detail-card-item span {
++  display: grid;
++  width: 27px;
++  height: 27px;
++  place-items: center;
++  border: 2px solid #a16c7b;
++  border-radius: 50%;
++  color: #f1d9bd;
++  font-family: var(--heading-font);
++  font-size: 15px;
+   font-weight: 700;
++}
+ 
+-  transition:
+-    transform 150ms ease,
+-    border-color 150ms ease,
+-    background 150ms ease;
++.question-panel {
++  position: relative;
++  padding: 24px;
++  border: 1px solid #363247;
++  border-radius: 12px;
++  background: rgba(12, 13, 29, 0.95);
+ }
+ 
+-.primary-action {
+-  margin-top: 24px;
++.question-panel > p {
++  margin: 11px 0 17px;
++  color: #b8aeba;
++  font-family: var(--heading-font);
++  font-size: 16px;
++  line-height: 1.45;
++}
++
++.question-panel textarea {
++  width: 100%;
++  min-height: 180px;
++  resize: vertical;
++  padding: 16px;
++  border: 1px solid #302d43;
++  border-radius: 9px;
++  outline: none;
++  background: #090a18;
++  color: #eee6df;
++  font-family: var(--heading-font);
++  font-size: 16px;
++  line-height: 1.5;
++}
+ 
+-  border: 1px solid #8060a5;
++.question-panel textarea::placeholder {
++  color: #8e8797;
++}
+ 
+-  background: linear-gradient(135deg, #4b326d, #302047);
+-  color: #fff8f2;
++.question-panel textarea:focus {
++  border-color: #8860a3;
++  box-shadow: 0 0 0 3px rgba(127, 79, 158, 0.14);
+ }
+ 
+-.primary-action:hover {
+-  transform: translateY(-1px);
++.context-counter {
++  position: absolute;
++  right: 38px;
++  bottom: 37px;
++  color: #a39aaa;
++  font-family: var(--heading-font);
++  font-size: 15px;
++}
+ 
+-  background: linear-gradient(135deg, #5a3b81, #392653);
++.form-error {
++  margin: 15px 0 0;
++  color: var(--danger);
++  text-align: center;
+ }
+ 
+-.secondary-action {
+-  border: 1px solid #4b405f;
++.create-reading-button {
++  display: flex;
++  width: 100%;
++  min-height: 66px;
++  align-items: center;
++  justify-content: center;
++  gap: 10px;
++  margin-top: 22px;
++  border: 1px solid #8459a5;
++  border-radius: 11px;
++  background: linear-gradient(135deg, #5a377d, #371e58);
++  color: #fff7ef;
++  font-family: var(--heading-font);
++  font-size: 22px;
++  font-weight: 700;
++  cursor: pointer;
++  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
++}
++
++.create-reading-button svg {
++  width: 23px;
++  height: 23px;
++}
+ 
+-  background: rgba(23, 21, 42, 0.8);
+-  color: #e5dce7;
++.create-reading-button:hover:not(:disabled) {
++  background: linear-gradient(135deg, #6b468c, #432669);
+ }
+ 
+-.secondary-action:hover {
+-  border-color: #8060a5;
+-  background: rgba(42, 31, 61, 0.9);
++.create-reading-button:disabled {
++  opacity: 0.64;
++  cursor: wait;
+ }
+ 
+-.primary-action:focus-visible,
+-.secondary-action:focus-visible,
+-.error-panel button:focus-visible {
++.create-reading-button:focus-visible {
+   outline: 2px solid var(--focus);
+   outline-offset: 3px;
+ }
+ 
++.create-reading-note {
++  margin: 13px 0 0;
++  color: #9c94a1;
++  font-family: var(--heading-font);
++  font-size: 15px;
++  text-align: center;
++}
++
+ /* =========================================================
+-   New reading selected spread
++   Reading history
+    ========================================================= */
+ 
+-.start-reading-panel {
++.readings-page {
++  max-width: 760px;
++}
++
++.readings-heading {
++  margin-bottom: 26px;
++}
++
++.history-toolbar {
++  display: grid;
++  grid-template-columns: minmax(250px, 1fr) 155px 154px;
++  gap: 10px;
++  margin-bottom: 18px;
++}
++
++.reading-history-list {
+   display: grid;
+-  grid-template-columns: 68px minmax(0, 1fr) auto;
++  gap: 10px;
++}
++
++.reading-history-row {
++  display: grid;
++  grid-template-columns: 52px minmax(0, 1fr) 112px auto 20px;
++  min-height: 112px;
+   align-items: center;
+-  gap: 22px;
++  gap: 16px;
++  padding: 13px 17px;
++  border: 1px solid #2f2d43;
++  border-radius: 11px;
++  background: linear-gradient(90deg, rgba(14, 15, 31, 0.98), rgba(9, 10, 23, 0.98));
++  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
++  transition: 150ms ease;
++}
+ 
+-  padding: 22px;
++.reading-history-row:hover {
++  transform: translateY(-1px);
++  border-color: #4f3c59;
++  background: linear-gradient(90deg, rgba(23, 20, 40, 0.98), rgba(12, 12, 28, 0.98));
++}
+ 
+-  border: 1px solid var(--border-strong);
+-  border-radius: 14px;
++.reading-history-row > svg:first-child {
++  width: 52px;
++  height: 78px;
++}
+ 
+-  background: linear-gradient(
+-    135deg,
+-    rgba(28, 23, 48, 0.94),
+-    rgba(12, 13, 29, 0.96)
+-  );
++.reading-history-copy h2 {
++  margin: 0;
++  overflow: hidden;
++  color: #f0e8df;
++  font-family: var(--heading-font);
++  font-size: 19px;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
+ 
+-  box-shadow:
+-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+-    0 18px 45px rgba(0, 0, 0, 0.17);
++.reading-history-copy p {
++  margin: 6px 0 0;
++  color: #a99faa;
++  font-family: var(--heading-font);
++  font-size: 15px;
+ }
+ 
+-.start-reading-card {
+-  width: 68px;
+-  height: auto;
++.reading-history-date {
++  display: grid;
++  gap: 7px;
++  color: #c8bdc5;
++  font-family: var(--heading-font);
++  font-size: 15px;
++  text-align: right;
++}
+ 
+-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.34));
++.reading-card-count {
++  padding: 7px 11px;
++  border: 1px solid #895d78;
++  border-radius: 999px;
++  color: #e8d9d5;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  white-space: nowrap;
+ }
+ 
+-.start-reading-copy {
+-  min-width: 0;
++.reading-history-chevron {
++  width: 20px;
++  height: 20px;
++  color: #d8cfd0;
++}
++
++.pagination {
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  gap: 10px;
++  margin-top: 29px;
++  font-family: var(--heading-font);
++}
++
++.pagination > a,
++.pagination-fragment > a,
++.pagination-ellipsis {
++  display: grid;
++  min-width: 35px;
++  height: 35px;
++  place-items: center;
++  border-radius: 7px;
++  color: #ddd2d7;
++}
++
++.pagination-fragment {
++  display: contents;
++}
++
++.pagination a.is-current {
++  border: 1px solid #654582;
++  background: #35234f;
+ }
+ 
+-.start-reading-label {
++.pagination a.is-disabled {
++  opacity: 0.35;
++  pointer-events: none;
++}
++
++/* =========================================================
++   Reading detail
++   ========================================================= */
++
++.reading-detail-page {
++  max-width: 850px;
++}
++
++.reading-detail-heading {
++  margin-bottom: 20px;
++}
++
++.reading-detail-heading p {
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  font-size: 18px;
++}
++
++.reading-detail-heading p svg {
++  width: 16px;
++  height: 16px;
+   color: var(--gold);
++}
+ 
+-  font-size: 11px;
+-  font-weight: 750;
+-  letter-spacing: 0.16em;
+-  text-transform: uppercase;
++.reading-question-panel {
++  display: flex;
++  min-height: 102px;
++  align-items: center;
++  justify-content: space-between;
++  gap: 20px;
++  padding: 18px 22px;
++  border: 1px solid #4d3b52;
++  border-radius: 12px;
++  background: linear-gradient(90deg, rgba(20, 17, 36, 0.96), rgba(12, 12, 27, 0.96));
+ }
+ 
+-.start-reading-copy h2 {
+-  margin: 7px 0 0;
++.reading-question-panel span {
++  color: #d1c5cc;
++  font-family: var(--heading-font);
++  font-size: 15px;
++}
+ 
+-  color: #f3ece3;
++.reading-question-panel p {
++  margin: 7px 0 0;
++  color: #f0e7df;
++  font-family: var(--heading-font);
++  font-size: 19px;
++}
+ 
+-  font-family: Georgia, "Times New Roman", serif;
+-  font-size: 25px;
++.reading-edit-icon {
++  display: grid;
++  width: 43px;
++  height: 43px;
++  flex: 0 0 auto;
++  place-items: center;
++  border-radius: 9px;
++  background: #201737;
+ }
+ 
+-.start-reading-copy > p {
+-  margin: 8px 0 0;
++.reading-edit-icon svg {
++  width: 21px;
++  height: 21px;
++  color: #e4d0c7;
++}
+ 
+-  color: #b6afbd;
++.reading-detail-layout {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 225px;
++  gap: 16px;
++  margin-top: 20px;
++}
+ 
+-  line-height: 1.55;
++.drawn-cards-grid {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 14px;
++  align-items: stretch;
+ }
+ 
+-.start-reading-meta {
++.drawn-card-panel {
+   display: flex;
+-  flex-wrap: wrap;
+-  gap: 8px 18px;
++  min-width: 0;
++  flex-direction: column;
++  align-items: center;
++  padding: 15px 12px 18px;
++  border: 1px solid #4b3a4f;
++  border-radius: 11px;
++  background: linear-gradient(180deg, rgba(19, 17, 35, 0.98), rgba(11, 12, 26, 0.98));
++  text-align: center;
++}
+ 
+-  margin-top: 13px;
++.drawn-card-panel > h2 {
++  margin: 6px 0 0;
++  font-family: var(--heading-font);
++  font-size: 19px;
++}
++
++.drawn-position-prompt {
++  min-height: 39px;
++  margin: 6px 0 12px;
++  color: #b4a9b5;
++  font-family: var(--heading-font);
++  font-size: 13px;
++  line-height: 1.35;
+ }
+ 
+-.start-reading-meta span {
+-  color: #8e8798;
++.tarot-face-frame {
++  width: min(100%, 138px);
++  aspect-ratio: 180 / 310;
++  overflow: hidden;
++  border-radius: 5px;
++  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.33);
++}
++
++.tarot-face-frame svg {
++  display: block;
++  width: 100%;
++  height: 100%;
++}
++
++.tarot-face-frame.is-reversed svg {
++  transform: rotate(180deg);
++}
++
++.drawn-card-panel > h3 {
++  margin: 13px 0 0;
++  font-family: var(--heading-font);
++  font-size: 20px;
++  line-height: 1.15;
++}
+ 
++.drawn-arcana {
++  margin: 5px 0 0;
++  color: #998f9c;
++  font-family: var(--heading-font);
+   font-size: 13px;
+ }
+ 
+-.next-step-panel {
+-  margin-top: 22px;
+-  padding-top: 38px;
+-  padding-bottom: 38px;
++.orientation-badge {
++  margin-top: 13px;
++  padding: 6px 12px;
++  border: 1px solid #5b405d;
++  border-radius: 8px;
++  color: #e5d8d4;
++  font-family: var(--heading-font);
++  font-size: 14px;
++}
++
++.drawn-meaning {
++  margin: 16px 0 0;
++  color: #d0c4c7;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  line-height: 1.45;
++}
++
++.reading-detail-aside {
++  display: grid;
++  align-content: start;
++  gap: 14px;
++}
++
++.reading-info-card,
++.reading-explore-card {
++  padding: 20px;
++  border: 1px solid #302e43;
++  border-radius: 11px;
++  background: rgba(11, 12, 27, 0.96);
++}
++
++.reading-info-card h2,
++.reading-explore-card h2 {
++  margin: 0 0 19px;
++  font-family: var(--heading-font);
++  font-size: 21px;
++}
++
++.reading-info-card > div {
++  padding: 0 0 16px;
++  margin-bottom: 16px;
++  border-bottom: 1px solid #252437;
++}
++
++.reading-info-card > div:last-child {
++  padding-bottom: 0;
++  margin-bottom: 0;
++  border-bottom: 0;
++}
++
++.reading-info-card span {
++  color: #c6bbc3;
++  font-family: var(--heading-font);
++  font-size: 14px;
++}
++
++.reading-info-card p,
++.reading-explore-card p {
++  margin: 6px 0 0;
++  color: #e2d8d2;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  line-height: 1.45;
++}
++
++.reading-id {
++  overflow-wrap: anywhere;
++  color: #b6acb7 !important;
++  font-size: 12px !important;
++}
++
++.reading-explore-card p {
++  margin-bottom: 17px;
++  color: #b8aeba;
++}
++
++.reading-explore-card a {
++  display: flex;
++  min-height: 50px;
++  align-items: center;
++  gap: 10px;
++  margin-top: 10px;
++  padding: 0 13px;
++  border: 1px solid #332d46;
++  border-radius: 9px;
++  font-family: var(--heading-font);
++  font-size: 15px;
++}
++
++.reading-explore-card a svg {
++  width: 20px;
++  height: 20px;
++  color: #d8b070;
++}
++
++.reading-reminder {
++  margin: 28px 0 0;
++  padding-top: 22px;
++  border-top: 1px solid #262438;
++  color: #9e95a1;
++  font-family: var(--heading-font);
++  font-size: 14px;
++  text-align: center;
+ }
+ 
+ /* =========================================================
+-   Loading skeletons
++   About page
+    ========================================================= */
+ 
+-.skeleton {
+-  position: relative;
++.about-page {
++  max-width: 760px;
++}
+ 
++.about-heading {
++  margin-bottom: 36px;
++}
++
++.about-mission-panel {
++  position: relative;
++  min-height: 460px;
+   overflow: hidden;
++  padding: 31px 28px;
++  border: 1px solid #302e43;
++  border-radius: 14px;
++  background: linear-gradient(145deg, rgba(17, 17, 36, 0.98), rgba(9, 10, 23, 0.98));
++}
+ 
+-  border-radius: 9px;
++.about-landscape {
++  position: absolute;
++  right: -75px;
++  bottom: -45px;
++  width: 660px;
++  height: 480px;
++  opacity: 0.9;
++  pointer-events: none;
++}
+ 
+-  background: #15162a;
++.about-principles {
++  position: relative;
++  z-index: 2;
++  display: grid;
++  gap: 34px;
++  width: min(100%, 450px);
+ }
+ 
+-.skeleton::after {
+-  content: "";
++.about-principle {
++  display: grid;
++  grid-template-columns: 58px minmax(0, 1fr);
++  gap: 18px;
++  align-items: start;
++}
+ 
+-  position: absolute;
+-  inset: 0;
++.about-principle-icon {
++  display: grid;
++  width: 54px;
++  height: 54px;
++  place-items: center;
++  border-radius: 50%;
++  background: #201833;
++  box-shadow: inset 0 0 0 1px rgba(95, 69, 115, 0.38);
++}
+ 
+-  transform: translateX(-100%);
++.about-principle-icon svg {
++  width: 31px;
++  height: 31px;
++  color: #e1ad6f;
++}
+ 
+-  background: linear-gradient(
+-    90deg,
+-    transparent,
+-    rgba(255, 255, 255, 0.055),
+-    transparent
+-  );
++.about-principle h2 {
++  margin: 2px 0 0;
++  font-family: var(--heading-font);
++  font-size: 23px;
++}
+ 
+-  animation: skeleton-shimmer 1.5s infinite;
++.about-principle p {
++  margin: 7px 0 0;
++  color: #c2b7c2;
++  font-family: var(--heading-font);
++  font-size: 16px;
++  line-height: 1.55;
+ }
+ 
+-.skeleton-eyebrow {
+-  width: 110px;
+-  height: 12px;
++.built-with-care {
++  margin-top: 36px;
++  padding: 28px 29px;
++  border: 1px solid #2c2b40;
++  border-radius: 12px;
++  background: rgba(10, 11, 25, 0.92);
+ }
+ 
+-.skeleton-title {
+-  width: min(440px, 80%);
+-  height: 50px;
++.built-with-care h2 {
++  margin: 0 0 15px;
++  font-family: var(--heading-font);
++  font-size: 22px;
++}
+ 
+-  margin-top: 15px;
++.built-with-care p {
++  margin: 5px 0;
++  color: #bcb1bc;
++  font-family: var(--heading-font);
++  font-size: 15px;
+ }
+ 
+-.skeleton-subtitle {
+-  width: min(610px, 95%);
+-  height: 18px;
++/* =========================================================
++   Loading, errors and generic states
++   ========================================================= */
+ 
+-  margin-top: 17px;
++.error-page {
++  display: grid;
++  min-height: calc(100vh - 90px);
++  place-items: center;
+ }
+ 
+-.skeleton-control {
+-  min-height: 56px;
++.error-panel {
++  width: min(100%, 600px);
++  min-height: 300px;
++  padding: 30px;
+ }
+ 
+-.skeleton-spread-row {
+-  min-height: 111px;
++.error-panel h1 {
++  margin: 0;
++  font-family: var(--heading-font);
++  font-size: 38px;
+ }
+ 
+-@keyframes skeleton-shimmer {
+-  100% {
+-    transform: translateX(100%);
+-  }
++.error-panel p {
++  max-width: 470px;
++  margin: 13px 0 0;
++  color: var(--body);
++  line-height: 1.55;
++}
++
++.error-panel button {
++  margin-top: 22px;
++  padding: 11px 18px;
++  border: 1px solid #765091;
++  border-radius: 9px;
++  background: #392450;
++  color: #fff;
++  cursor: pointer;
++}
++
++.skeleton {
++  position: relative;
++  overflow: hidden;
++  border-radius: 9px;
++  background: #151528;
++}
++
++.skeleton::after {
++  content: "";
++  position: absolute;
++  inset: 0;
++  transform: translateX(-100%);
++  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.055), transparent);
++  animation: shimmer 1.4s infinite;
++}
++
++.skeleton-eyebrow { width: 100px; height: 12px; }
++.skeleton-title { width: min(430px, 80%); height: 48px; margin-top: 15px; }
++.skeleton-subtitle { width: min(590px, 95%); height: 18px; margin-top: 14px; }
++.skeleton-control { min-height: 56px; }
++.skeleton-spread-row { min-height: 250px; }
++
++@keyframes shimmer {
++  100% { transform: translateX(100%); }
+ }
+ 
+ /* =========================================================
+-   Tablet and mobile
++   Responsive layouts
+    ========================================================= */
+ 
+-@media (max-width: 920px) {
++@media (max-width: 1050px) {
++  .arcana-main {
++    padding-right: 30px;
++    padding-left: 30px;
++  }
++
++  .spread-detail-columns {
++    grid-template-columns: minmax(0, 1fr) 340px;
++  }
++
++  .drawn-cards-grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++  }
++}
++
++@media (max-width: 860px) {
+   .arcana-shell {
+     display: block;
+   }
+@@ -914,11 +1609,8 @@ a {
+   .arcana-sidebar {
+     position: fixed;
+     left: 0;
+-
+-    width: min(280px, 86vw);
+-
+-    transform: translateX(-105%);
+-
++    width: min(270px, 86vw);
++    transform: translateX(-104%);
+     transition: transform 180ms ease;
+   }
+ 
+@@ -926,27 +1618,46 @@ a {
+     transform: translateX(0);
+   }
+ 
+-  .sidebar-close-button {
+-    display: inline-flex;
++  .sidebar-close-button,
++  .mobile-menu-button {
++    display: grid;
++    place-items: center;
++    border: 1px solid #353148;
++    border-radius: 9px;
++    background: #101125;
++    color: var(--cream);
++    cursor: pointer;
++  }
+ 
++  .sidebar-close-button {
+     width: 39px;
+     height: 39px;
+   }
+ 
+-  .sidebar-backdrop {
++  .sidebar-close-button svg,
++  .mobile-menu-button svg {
++    width: 21px;
++    height: 21px;
++  }
++
++  .mobile-menu-button {
+     position: fixed;
+-    inset: 0;
++    top: 16px;
++    left: 16px;
+     z-index: 20;
++    width: 44px;
++    height: 44px;
++  }
+ 
++  .sidebar-backdrop {
++    position: fixed;
++    inset: 0;
++    z-index: 25;
+     display: block;
+-
+     border: 0;
+-
+-    background: rgba(3, 4, 12, 0.72);
+-
++    background: rgba(2, 3, 10, 0.76);
+     opacity: 0;
+     pointer-events: none;
+-
+     transition: opacity 180ms ease;
+   }
+ 
+@@ -955,125 +1666,157 @@ a {
+     pointer-events: auto;
+   }
+ 
+-  .mobile-menu-button {
+-    position: fixed;
+-    top: 18px;
+-    left: 18px;
+-    z-index: 15;
+-
+-    display: inline-flex;
+-
+-    width: 44px;
+-    height: 44px;
+-
+-    box-shadow: 0 13px 30px rgba(0, 0, 0, 0.26);
++  .arcana-main {
++    padding-top: 80px;
+   }
+ 
+-  .arcana-main {
+-    padding-top: 86px;
++  .spread-detail-heading {
++    padding-top: 0;
+   }
+ }
+ 
+-@media (max-width: 760px) {
++@media (max-width: 720px) {
+   .arcana-main {
+-    padding-right: 20px;
+-    padding-left: 20px;
++    padding-right: 18px;
++    padding-left: 18px;
+   }
+ 
+-  .catalog-controls {
+-    grid-template-columns: 1fr 1fr;
++  .landing-page {
++    padding-top: 30px;
+   }
+ 
+-  .catalog-search {
+-    grid-column: 1 / -1;
++  .landing-wheel {
++    top: -40px;
+   }
+ 
+-  .spread-row {
+-    grid-template-columns: 48px minmax(0, 1fr) 22px;
++  .landing-welcome {
++    margin-top: 20px;
++    font-size: 27px;
++  }
+ 
+-    gap: 14px;
++  .landing-content h1 {
++    font-size: 60px;
+   }
+ 
+-  .spread-card-back {
+-    width: 48px;
+-    height: 70px;
++  .landing-description br {
++    display: none;
+   }
+ 
+-  .spread-count {
+-    grid-column: 2;
++  .how-it-works-grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++    row-gap: 28px;
++  }
+ 
+-    justify-self: start;
++  .spread-toolbar,
++  .history-toolbar {
++    grid-template-columns: 1fr;
++  }
+ 
+-    margin-top: 3px;
++  .spread-card-grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
+   }
+ 
+-  .spread-chevron {
+-    grid-column: 3;
+-    grid-row: 1 / 3;
++  .spread-detail-columns,
++  .reading-detail-layout {
++    grid-template-columns: 1fr;
+   }
+ 
+-  .spread-intent {
+-    display: none;
++  .spread-card-preview-panel {
++    order: -1;
++  }
++
++  .history-toolbar {
++    gap: 9px;
+   }
+ 
+-  .start-reading-panel {
+-    grid-template-columns: 58px minmax(0, 1fr);
++  .reading-history-row {
++    grid-template-columns: 46px minmax(0, 1fr) 20px;
+   }
+ 
+-  .start-reading-card {
+-    width: 58px;
++  .reading-history-row > svg:first-child {
++    width: 46px;
++    height: 70px;
+   }
+ 
+-  .start-reading-panel .secondary-action {
+-    grid-column: 1 / -1;
++  .reading-history-date,
++  .reading-card-count {
++    grid-column: 2;
+     justify-self: start;
++    text-align: left;
+   }
+-}
+ 
+-@media (max-width: 500px) {
+-  .arcana-main {
+-    padding-right: 15px;
+-    padding-left: 15px;
++  .reading-history-date {
++    display: flex;
++    gap: 7px;
+   }
+ 
+-  .page-heading h1,
+-  .error-panel h1 {
+-    font-size: 38px;
++  .reading-history-chevron {
++    grid-column: 3;
++    grid-row: 1 / 4;
+   }
+ 
+-  .catalog-controls {
+-    grid-template-columns: 1fr;
++  .drawn-cards-grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++  }
++
++  .about-landscape {
++    right: -180px;
++    opacity: 0.55;
+   }
++}
+ 
+-  .catalog-search {
+-    grid-column: auto;
++@media (max-width: 480px) {
++  .reference-page-heading h1,
++  .reading-detail-heading h1,
++  .spread-detail-heading h1 {
++    font-size: 40px;
+   }
+ 
+-  .spread-row {
+-    min-height: 104px;
++  .landing-content h1 {
++    font-size: 50px;
++  }
+ 
+-    padding: 13px;
++  .landing-tagline,
++  .landing-description {
++    font-size: 16px;
+   }
+ 
+-  .spread-copy strong {
+-    font-size: 17px;
++  .how-it-works-grid,
++  .spread-card-grid,
++  .drawn-cards-grid {
++    grid-template-columns: 1fr;
+   }
+ 
+-  .spread-description {
+-    display: -webkit-box;
++  .spread-option-card {
++    min-height: 245px;
++  }
+ 
+-    overflow: hidden;
++  .spread-detail-card-row {
++    overflow-x: auto;
++    justify-content: flex-start;
++  }
+ 
+-    -webkit-box-orient: vertical;
+-    -webkit-line-clamp: 2;
++  .question-panel {
++    padding: 20px;
+   }
+ 
+-  .start-reading-panel {
+-    grid-template-columns: 1fr;
++  .about-mission-panel {
++    padding: 24px 20px;
+   }
+ 
+-  .start-reading-card {
+-    width: 64px;
++  .about-principle {
++    grid-template-columns: 48px minmax(0, 1fr);
++    gap: 13px;
++  }
++
++  .about-principle-icon {
++    width: 46px;
++    height: 46px;
++  }
++
++  .about-landscape {
++    right: -250px;
++    opacity: 0.38;
+   }
+ }
+ 
+@@ -1081,9 +1824,9 @@ a {
+   *,
+   *::before,
+   *::after {
+-    scroll-behavior: auto !important;
+     animation-duration: 0.01ms !important;
+     animation-iteration-count: 1 !important;
+     transition-duration: 0.01ms !important;
++    scroll-behavior: auto !important;
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/app/page.tsx b/app/page.tsx
+deleted file mode 100644
+index b1e924c..0000000
+--- a/app/page.tsx
++++ /dev/null
+@@ -1,151 +0,0 @@
+-import Link from "next/link";
+-import {
+-  BrandMarkIcon,
+-  NewReadingIcon,
+-  ReadingsIcon,
+-  SpreadsIcon,
+-  TarotCardBack,
+-} from "@/components/icons/ArcanaIcons";
+-
+-export default function HomePage() {
+-  return (
+-    <main className="home-page">
+-      <div className="home-stars" aria-hidden="true" />
+-
+-      <header className="home-header">
+-        <Link href="/" className="home-brand" aria-label="Arcana AI homepage">
+-          <BrandMarkIcon />
+-          <span>Arcana AI</span>
+-        </Link>
+-
+-        <nav className="home-navigation" aria-label="Homepage navigation">
+-          <Link href="/spreads">Spreads</Link>
+-          <Link href="/readings">Readings</Link>
+-          <Link href="/about">About</Link>
+-        </nav>
+-
+-        <Link href="/spreads" className="home-header-action">
+-          Begin a reading
+-        </Link>
+-      </header>
+-
+-      <section className="home-hero">
+-        <div className="home-hero-copy">
+-          <p className="home-eyebrow">
+-            <BrandMarkIcon />
+-            Reflection through the cards
+-          </p>
+-
+-          <h1>
+-            Find clarity
+-            <span> within the arcana.</span>
+-          </h1>
+-
+-          <p className="home-hero-description">
+-            Choose a predefined tarot spread, share an optional question, and
+-            receive a reading securely drawn and preserved by Arcana AI.
+-          </p>
+-
+-          <div className="home-hero-actions">
+-            <Link href="/spreads" className="home-primary-action">
+-              <NewReadingIcon />
+-              Explore the spreads
+-            </Link>
+-
+-            <Link href="/readings" className="home-secondary-action">
+-              View past readings
+-            </Link>
+-          </div>
+-
+-          <div className="home-trust-note">
+-            <span aria-hidden="true" />
+-            The backend draws and stores every card before interpretation.
+-          </div>
+-        </div>
+-
+-        <div className="home-card-scene" aria-label="Decorative tarot cards">
+-          <div className="home-orbit home-orbit-one" aria-hidden="true" />
+-          <div className="home-orbit home-orbit-two" aria-hidden="true" />
+-
+-          <div className="home-card home-card-left">
+-            <TarotCardBack />
+-          </div>
+-
+-          <div className="home-card home-card-center">
+-            <TarotCardBack />
+-          </div>
+-
+-          <div className="home-card home-card-right">
+-            <TarotCardBack />
+-          </div>
+-
+-          <BrandMarkIcon className="home-floating-symbol home-symbol-one" />
+-          <BrandMarkIcon className="home-floating-symbol home-symbol-two" />
+-        </div>
+-      </section>
+-
+-      <section className="home-process" aria-labelledby="how-it-works-title">
+-        <div className="home-section-heading">
+-          <p className="home-eyebrow">A thoughtful ritual</p>
+-          <h2 id="how-it-works-title">How your reading unfolds</h2>
+-          <p>
+-            The experience is simple, while the application keeps the card
+-            selection and saved result consistent and secure.
+-          </p>
+-        </div>
+-
+-        <div className="home-process-grid">
+-          <article className="home-process-card">
+-            <span className="home-step-number">01</span>
+-            <SpreadsIcon />
+-            <h3>Choose a spread</h3>
+-            <p>
+-              Explore one-card, three-card, five-card, relationship, and Celtic
+-              Cross structures.
+-            </p>
+-          </article>
+-
+-          <article className="home-process-card">
+-            <span className="home-step-number">02</span>
+-            <NewReadingIcon />
+-            <h3>Share your question</h3>
+-            <p>
+-              Add an optional question or personal context to guide the focus
+-              of the reading.
+-            </p>
+-          </article>
+-
+-          <article className="home-process-card">
+-            <span className="home-step-number">03</span>
+-            <ReadingsIcon />
+-            <h3>Return to your insight</h3>
+-            <p>
+-              Every created reading is stored so it can be opened and reflected
+-              upon again later.
+-            </p>
+-          </article>
+-        </div>
+-      </section>
+-
+-      <section className="home-callout">
+-        <div>
+-          <p className="home-eyebrow">Begin when you are ready</p>
+-          <h2>Let the right spread frame your question.</h2>
+-        </div>
+-
+-        <Link href="/spreads" className="home-primary-action">
+-          Browse predefined spreads
+-        </Link>
+-      </section>
+-
+-      <footer className="home-footer">
+-        <Link href="/" className="home-brand">
+-          <BrandMarkIcon />
+-          <span>Arcana AI</span>
+-        </Link>
+-
+-        <p>Trust the cards. Find clarity within.</p>
+-      </footer>
+-    </main>
+-  );
+-}
+\ No newline at end of file
+diff --git a/components/icons/ArcanaIcons.tsx b/components/icons/ArcanaIcons.tsx
+index 600f496..659e14f 100644
+--- a/components/icons/ArcanaIcons.tsx
++++ b/components/icons/ArcanaIcons.tsx
+@@ -4,170 +4,86 @@ type IconProps = SVGProps<SVGSVGElement>;
+ 
+ export function BrandMarkIcon(props: IconProps) {
+   return (
+-    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="M16 2v28M2 16h28M6.2 6.2l19.6 19.6M25.8 6.2 6.2 25.8"
+-        stroke="currentColor"
+-        strokeWidth="1.25"
+-        strokeLinecap="round"
+-      />
+-
+-      <path
+-        d="m16 8 2.2 5.8L24 16l-5.8 2.2L16 24l-2.2-5.8L8 16l5.8-2.2L16 8Z"
+-        fill="currentColor"
+-        fillOpacity=".2"
+-        stroke="currentColor"
+-        strokeWidth="1.2"
+-      />
++    <svg viewBox="0 0 40 40" fill="none" aria-hidden="true" {...props}>
++      <path d="M20 2v36M2 20h36M7.3 7.3l25.4 25.4M32.7 7.3 7.3 32.7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
++      <path d="M20 8.5 23 17l8.5 3-8.5 3-3 8.5-3-8.5-8.5-3 8.5-3 3-8.5Z" fill="currentColor" fillOpacity=".15" stroke="currentColor" strokeWidth="1.35" />
++      <path d="m20 13 1.7 5.3L27 20l-5.3 1.7L20 27l-1.7-5.3L13 20l5.3-1.7L20 13Z" fill="currentColor" />
++      <circle cx="20" cy="2.8" r="1.25" fill="currentColor" />
++      <circle cx="37.2" cy="20" r="1.25" fill="currentColor" />
++      <circle cx="20" cy="37.2" r="1.25" fill="currentColor" />
++      <circle cx="2.8" cy="20" r="1.25" fill="currentColor" />
++    </svg>
++  );
++}
+ 
+-      <circle cx="16" cy="3.5" r="1.2" fill="currentColor" />
+-      <circle cx="28.5" cy="16" r="1.2" fill="currentColor" />
+-      <circle cx="16" cy="28.5" r="1.2" fill="currentColor" />
+-      <circle cx="3.5" cy="16" r="1.2" fill="currentColor" />
++export function SparkleIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
++      <path d="M12 2.7c.8 4.7 2.7 6.7 7.3 7.5-4.6.8-6.5 2.8-7.3 7.5-.8-4.7-2.7-6.7-7.3-7.5 4.6-.8 6.5-2.8 7.3-7.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
++      <path d="M19.4 3.8c.2 1.4.8 2 2.2 2.3-1.4.3-2 1-2.2 2.3-.2-1.4-.8-2-2.2-2.3 1.4-.3 2-1 2.2-2.3Z" fill="currentColor" />
+     </svg>
+   );
+ }
+ 
+ export function NewReadingIcon(props: IconProps) {
++  return <SparkleIcon {...props} />;
++}
++
++export function ReadingsIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="M12 2.8c.7 4.8 2.7 7 7 7.7-4.3.8-6.3 3-7 7.7-.7-4.7-2.7-6.9-7-7.7 4.3-.7 6.3-2.9 7-7.7Z"
+-        stroke="currentColor"
+-        strokeWidth="1.7"
+-        strokeLinejoin="round"
+-      />
+-
+-      <path
+-        d="M19 3.5c.2 1.5.9 2.2 2.2 2.5-1.3.3-2 1-2.2 2.5-.2-1.5-.9-2.2-2.2-2.5 1.3-.3 2-1 2.2-2.5Z"
+-        fill="currentColor"
+-      />
++      <path d="M4 5.3c2.8-.9 5.4-.5 8 1.1v12.1c-2.6-1.6-5.2-2-8-1.1V5.3Z" stroke="currentColor" strokeWidth="1.65" strokeLinejoin="round" />
++      <path d="M20 5.3c-2.8-.9-5.4-.5-8 1.1v12.1c2.6-1.6 5.2-2 8-1.1V5.3ZM7 9h2.3M7 12h2.3M14.7 9H17M14.7 12H17" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" />
+     </svg>
+   );
+ }
+ 
+-/**
+- * Represents the reusable predefined spread templates.
+- * It uses two overlapping tarot cards so it is visually distinct
+- * from the Readings history icon.
+- */
+-export function SpreadsIcon(props: IconProps) {
++export function AboutIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <rect
+-        x="5"
+-        y="4"
+-        width="11"
+-        height="15"
+-        rx="2"
+-        stroke="currentColor"
+-        strokeWidth="1.6"
+-      />
+-
+-      <path
+-        d="M9 4.5 17.2 3a2 2 0 0 1 2.3 1.6l2 10.7a2 2 0 0 1-1.6 2.3L16 18.3"
+-        stroke="currentColor"
+-        strokeWidth="1.6"
+-        strokeLinecap="round"
+-      />
+-
+-      <path
+-        d="M10.5 8.2c.3 1.9 1.1 2.8 2.8 3.1-1.7.3-2.5 1.2-2.8 3.1-.3-1.9-1.1-2.8-2.8-3.1 1.7-.3 2.5-1.2 2.8-3.1Z"
+-        stroke="currentColor"
+-        strokeWidth="1.25"
+-        strokeLinejoin="round"
+-      />
++      <circle cx="12" cy="12" r="8.3" stroke="currentColor" strokeWidth="1.7" />
++      <path d="M12 10.6v5.2M12 7.7h.01" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+     </svg>
+   );
+ }
+ 
+-export function ReadingsIcon(props: IconProps) {
++export function SearchIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="M4 5.5c2.7-.9 5.3-.5 8 1.1v12c-2.7-1.6-5.3-2-8-1.1v-12Z"
+-        stroke="currentColor"
+-        strokeWidth="1.6"
+-        strokeLinejoin="round"
+-      />
+-
+-      <path
+-        d="M20 5.5c-2.7-.9-5.3-.5-8 1.1v12c2.7-1.6 5.3-2 8-1.1v-12ZM7 9h2.5M7 12h2.5M14.5 9H17M14.5 12H17"
+-        stroke="currentColor"
+-        strokeWidth="1.6"
+-        strokeLinecap="round"
+-        strokeLinejoin="round"
+-      />
++      <circle cx="10.7" cy="10.7" r="6.2" stroke="currentColor" strokeWidth="1.8" />
++      <path d="m15.4 15.4 4.1 4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+     </svg>
+   );
+ }
+ 
+-export function AboutIcon(props: IconProps) {
++export function ChevronDownIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <circle
+-        cx="12"
+-        cy="12"
+-        r="8.4"
+-        stroke="currentColor"
+-        strokeWidth="1.7"
+-      />
+-
+-      <path
+-        d="M12 10.7v5.1M12 7.8h.01"
+-        stroke="currentColor"
+-        strokeWidth="1.9"
+-        strokeLinecap="round"
+-      />
++      <path d="m7 9.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+     </svg>
+   );
+ }
+ 
+-export function SearchIcon(props: IconProps) {
++export function ChevronRightIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <circle
+-        cx="10.8"
+-        cy="10.8"
+-        r="6.1"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-      />
+-
+-      <path
+-        d="m15.4 15.4 4 4"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-      />
++      <path d="m9.5 6 6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+     </svg>
+   );
+ }
+ 
+-export function ChevronDownIcon(props: IconProps) {
++export function ArrowRightIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="m7 9.5 5 5 5-5"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-        strokeLinejoin="round"
+-      />
++      <path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+     </svg>
+   );
+ }
+ 
+-export function ChevronRightIcon(props: IconProps) {
++export function ArrowLeftIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="m9.5 6 6 6-6 6"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-        strokeLinejoin="round"
+-      />
++      <path d="M19 12H5M10 7l-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+     </svg>
+   );
+ }
+@@ -175,12 +91,7 @@ export function ChevronRightIcon(props: IconProps) {
+ export function MenuIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="M4 7h16M4 12h16M4 17h16"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-      />
++      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+     </svg>
+   );
+ }
+@@ -188,129 +99,199 @@ export function MenuIcon(props: IconProps) {
+ export function CloseIcon(props: IconProps) {
+   return (
+     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+-      <path
+-        d="m6 6 12 12M18 6 6 18"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-      />
++      <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+     </svg>
+   );
+ }
+ 
+-export function TarotCardBack(props: IconProps) {
++export function EditIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
++      <path d="m5 16.8-.7 3 3-.7L18.2 8.2 15.8 5.8 5 16.8Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
++      <path d="m14.6 7 2.4 2.4" stroke="currentColor" strokeWidth="1.7" />
++    </svg>
++  );
++}
++
++export function QuestionIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <circle cx="16" cy="16" r="11.5" stroke="currentColor" strokeWidth="1.5" />
++      <path d="M12.7 12.3a3.7 3.7 0 0 1 7.2 1.2c0 2.6-3.9 3.1-3.9 5.5M16 23.3h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
++    </svg>
++  );
++}
++
++export function DrawCardsIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <rect x="7" y="6" width="15" height="20" rx="2" stroke="currentColor" strokeWidth="1.5" />
++      <path d="m12 6 11.5-2a2 2 0 0 1 2.3 1.6l2.3 13.2a2 2 0 0 1-1.6 2.3L22 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
++      <path d="M14.5 11.5c.4 2.5 1.4 3.5 3.8 4-2.4.4-3.4 1.5-3.8 4-.4-2.5-1.4-3.6-3.8-4 2.4-.5 3.4-1.5 3.8-4Z" stroke="currentColor" strokeWidth="1.2" />
++    </svg>
++  );
++}
++
++export function ViewReadingIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <path d="M6.5 6.5c3.2-1 6.4-.5 9.5 1.5v18c-3.1-2-6.3-2.5-9.5-1.5v-18Z" stroke="currentColor" strokeWidth="1.5" />
++      <path d="M25.5 6.5c-3.2-1-6.4-.5-9.5 1.5v18c3.1-2 6.3-2.5 9.5-1.5v-18Z" stroke="currentColor" strokeWidth="1.5" />
++      <path d="m16 12 1.2 3.2 3.3 1.2-3.3 1.2L16 21l-1.2-3.4-3.3-1.2 3.3-1.2L16 12Z" stroke="currentColor" strokeWidth="1.2" />
++    </svg>
++  );
++}
++
++export function ChooseSpreadIcon(props: IconProps) {
+   return (
+-    <svg viewBox="0 0 52 76" fill="none" aria-hidden="true" {...props}>
+-      <rect
+-        x="1"
+-        y="1"
+-        width="50"
+-        height="74"
+-        rx="6"
+-        fill="#0c0d1c"
+-        stroke="#9b794d"
+-        strokeWidth="1.5"
+-      />
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <rect x="7" y="5" width="18" height="22" rx="2" stroke="currentColor" strokeWidth="1.5" />
++      <path d="M11 9h10v14H11z" stroke="currentColor" strokeWidth="1.1" />
++      <path d="m16 11 1.4 3.6 3.6 1.4-3.6 1.4L16 21l-1.4-3.6L11 16l3.6-1.4L16 11Z" stroke="currentColor" strokeWidth="1.1" />
++    </svg>
++  );
++}
+ 
+-      <rect
+-        x="5"
+-        y="5"
+-        width="42"
+-        height="66"
+-        rx="4"
+-        stroke="#5e4934"
+-        strokeWidth="1"
+-      />
++export function MissionIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <path d="M10 7.5h12v18H10z" stroke="currentColor" strokeWidth="1.5" />
++      <path d="M13 7.5V5h6v2.5M16 11v10M12.5 16H19.5M16 11l2.2 3.2L16 16l-2.2-1.8L16 11Z" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
++    </svg>
++  );
++}
+ 
+-      <path
+-        d="M26 14v48M12 38h28M17 22l18 32M35 22 17 54"
+-        stroke="#a88655"
+-        strokeWidth=".8"
+-        strokeLinecap="round"
+-        opacity=".55"
+-      />
++export function CardsIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <rect x="7.5" y="6" width="16" height="21" rx="2" stroke="currentColor" strokeWidth="1.5" />
++      <path d="m16 10 1.7 4.3L22 16l-4.3 1.7L16 22l-1.7-4.3L10 16l4.3-1.7L16 10Z" stroke="currentColor" strokeWidth="1.2" />
++      <path d="m11 6 12-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
++    </svg>
++  );
++}
+ 
+-      <path
+-        d="m26 25 3.1 9.1L38 38l-8.9 3.9L26 51l-3.1-9.1L14 38l8.9-3.9L26 25Z"
+-        fill="#c9a56e"
+-        fillOpacity=".12"
+-        stroke="#d2b074"
+-        strokeWidth="1.1"
+-      />
++export function JourneyIcon(props: IconProps) {
++  return (
++    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
++      <path d="M10 26c5-2 3.2-6.2 7-8 3.8-1.8 3.2-6 5-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
++      <circle cx="22" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
++      <path d="m8 25 4 1-2.5 3.5L8 25Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
++      <path d="M14 13c.3 2 1.1 2.8 3 3.2-1.9.4-2.7 1.2-3 3.2-.3-2-1.1-2.8-3-3.2 1.9-.4 2.7-1.2 3-3.2Z" stroke="currentColor" strokeWidth="1.15" />
++    </svg>
++  );
++}
+ 
+-      <circle cx="26" cy="14" r="1.2" fill="#d2b074" />
+-      <circle cx="26" cy="62" r="1.2" fill="#d2b074" />
+-      <circle cx="12" cy="38" r="1.2" fill="#d2b074" />
+-      <circle cx="40" cy="38" r="1.2" fill="#d2b074" />
++export function TarotCardBack(props: IconProps) {
++  return (
++    <svg viewBox="0 0 62 92" fill="none" aria-hidden="true" {...props}>
++      <rect x="1" y="1" width="60" height="90" rx="6" fill="#0b0c1c" stroke="#9b7548" strokeWidth="1.6" />
++      <rect x="5.5" y="5.5" width="51" height="81" rx="3.5" stroke="#5c452f" strokeWidth="1" />
++      <rect x="9" y="9" width="44" height="74" rx="2.5" stroke="#997246" strokeWidth=".7" opacity=".7" />
++      <path d="M31 14v64M14 46h34M19 25l24 42M43 25 19 67" stroke="#866440" strokeWidth=".8" strokeLinecap="round" opacity=".55" />
++      <circle cx="31" cy="46" r="13" stroke="#9c774a" strokeWidth=".7" opacity=".65" />
++      <path d="m31 30.5 3.7 11.8L46 46l-11.3 3.7L31 61.5l-3.7-11.8L16 46l11.3-3.7L31 30.5Z" fill="#c79c60" fillOpacity=".12" stroke="#d0a56b" strokeWidth="1.1" />
++      <path d="m31 37 2.2 6.8L40 46l-6.8 2.2L31 55l-2.2-6.8L22 46l6.8-2.2L31 37Z" fill="#cfa667" />
++      <circle cx="31" cy="14" r="1.2" fill="#d0a56b" />
++      <circle cx="31" cy="78" r="1.2" fill="#d0a56b" />
++      <circle cx="14" cy="46" r="1.2" fill="#d0a56b" />
++      <circle cx="48" cy="46" r="1.2" fill="#d0a56b" />
+     </svg>
+   );
+ }
+ 
+ export function SidebarLandscape(props: IconProps) {
+   return (
+-    <svg
+-      viewBox="0 0 220 220"
+-      fill="none"
+-      aria-hidden="true"
+-      preserveAspectRatio="xMidYMax slice"
+-      {...props}
+-    >
++    <svg viewBox="0 0 240 280" fill="none" aria-hidden="true" preserveAspectRatio="xMidYMax slice" {...props}>
+       <defs>
+-        <linearGradient
+-          id="sidebar-sky"
+-          x1="110"
+-          y1="0"
+-          x2="110"
+-          y2="220"
+-          gradientUnits="userSpaceOnUse"
+-        >
+-          <stop stopColor="#0c0d20" stopOpacity="0" />
+-          <stop offset=".55" stopColor="#191534" stopOpacity=".75" />
+-          <stop offset="1" stopColor="#2b1b42" />
++        <linearGradient id="sideSky" x1="120" y1="0" x2="120" y2="280" gradientUnits="userSpaceOnUse">
++          <stop stopColor="#090a1c" stopOpacity="0" />
++          <stop offset=".48" stopColor="#16132c" stopOpacity=".8" />
++          <stop offset="1" stopColor="#2c1c43" />
+         </linearGradient>
+-
+-        <linearGradient
+-          id="sidebar-mountain"
+-          x1="110"
+-          y1="95"
+-          x2="110"
+-          y2="220"
+-          gradientUnits="userSpaceOnUse"
+-        >
+-          <stop stopColor="#34264b" />
+-          <stop offset="1" stopColor="#0b0c1a" />
++        <linearGradient id="sideMount" x1="120" y1="125" x2="120" y2="280" gradientUnits="userSpaceOnUse">
++          <stop stopColor="#43305b" />
++          <stop offset="1" stopColor="#0a0b19" />
+         </linearGradient>
+       </defs>
+-
+-      <rect width="220" height="220" fill="url(#sidebar-sky)" />
+-
+-      <circle cx="63" cy="84" r="18" fill="#e6b779" />
+-      <circle cx="70" cy="77" r="18" fill="#15132a" />
+-
+-      <g fill="#d8b67a" opacity=".8">
+-        <circle cx="27" cy="42" r="1" />
+-        <circle cx="91" cy="35" r="1" />
+-        <circle cx="129" cy="62" r="1.2" />
+-        <circle cx="172" cy="43" r=".8" />
+-        <circle cx="190" cy="89" r="1" />
+-        <circle cx="41" cy="116" r=".8" />
+-        <circle cx="102" cy="92" r=".8" />
++      <rect width="240" height="280" fill="url(#sideSky)" />
++      <circle cx="72" cy="95" r="20" fill="#efbd79" />
++      <circle cx="80" cy="86" r="20" fill="#15132a" />
++      <g fill="#d4ad74" opacity=".75">
++        <circle cx="29" cy="48" r="1" /><circle cx="100" cy="38" r="1" /><circle cx="143" cy="74" r="1.2" /><circle cx="188" cy="47" r=".9" /><circle cx="208" cy="104" r="1" /><circle cx="45" cy="135" r=".8" /><circle cx="112" cy="105" r=".8" />
+       </g>
++      <path d="M0 198 44 145l29 30 38-65 37 59 27-29 65 67v73H0v-82Z" fill="url(#sideMount)" />
++      <path d="M0 222 38 187l31 25 32-39 34 31 32-23 73 55v44H0v-58Z" fill="#111225" />
++      <path d="M0 252c33-19 62-23 94-14 31 9 56 7 78-2 22-9 44-5 68 12v32H0v-28Z" fill="#080914" />
++      <path d="M120 280c3-21 14-34 31-44 15-9 22-20 19-34" stroke="#9d7196" strokeWidth="2" opacity=".45" />
++    </svg>
++  );
++}
+ 
+-      <path
+-        d="M0 163 40 122l27 25 35-52 34 48 24-24 60 54v47H0v-57Z"
+-        fill="url(#sidebar-mountain)"
+-      />
++export function AboutLandscape(props: IconProps) {
++  return (
++    <svg viewBox="0 0 760 520" fill="none" aria-hidden="true" preserveAspectRatio="xMidYMid slice" {...props}>
++      <defs>
++        <radialGradient id="aboutGlow" cx="0" cy="0" r="1" gradientTransform="translate(586 190) rotate(90) scale(185)" gradientUnits="userSpaceOnUse">
++          <stop stopColor="#87566f" stopOpacity=".55" />
++          <stop offset="1" stopColor="#17142a" stopOpacity="0" />
++        </radialGradient>
++        <linearGradient id="aboutMount" x1="520" y1="260" x2="520" y2="520" gradientUnits="userSpaceOnUse">
++          <stop stopColor="#3c294e" />
++          <stop offset="1" stopColor="#0a0b18" />
++        </linearGradient>
++      </defs>
++      <rect width="760" height="520" fill="url(#aboutGlow)" />
++      <g fill="#d5ad72" opacity=".72">
++        <circle cx="410" cy="88" r="1.2" /><circle cx="501" cy="65" r="1" /><circle cx="680" cy="106" r="1.1" /><circle cx="625" cy="54" r=".8" /><circle cx="460" cy="145" r=".8" />
++      </g>
++      <circle cx="610" cy="168" r="48" fill="#e9b976" />
++      <circle cx="629" cy="148" r="48" fill="#1a152c" />
++      <path d="M300 390 430 258l54 71 62-93 76 105 54-65 84 88v156H300V390Z" fill="url(#aboutMount)" />
++      <path d="M320 424 438 334l53 54 63-69 60 57 49-34 97 82v96H320v-96Z" fill="#111224" />
++      <path d="M506 520c2-44 33-61 63-80 29-19 39-44 28-79" stroke="#b381a2" strokeWidth="7" opacity=".68" />
++      <path d="M512 520c4-39 34-57 61-74 27-17 35-41 25-73" stroke="#d0a26b" strokeWidth="1.4" opacity=".8" />
++    </svg>
++  );
++}
+ 
+-      <path
+-        d="M0 180 34 153l28 20 29-31 31 25 29-18 69 45v26H0v-40Z"
+-        fill="#111224"
+-      />
++export function CelestialWheel(props: IconProps) {
++  return (
++    <svg viewBox="0 0 720 560" fill="none" aria-hidden="true" {...props}>
++      <g stroke="currentColor" opacity=".22">
++        <circle cx="360" cy="250" r="214" /><circle cx="360" cy="250" r="174" strokeDasharray="3 10" /><circle cx="360" cy="250" r="125" />
++        <path d="M146 250h428M360 36v428M209 99l302 302M511 99 209 401" strokeDasharray="2 12" />
++      </g>
++      <g fill="currentColor" opacity=".58">
++        <circle cx="188" cy="128" r="1.5" /><circle cx="541" cy="147" r="1.2" /><circle cx="227" cy="400" r="1.1" /><circle cx="493" cy="385" r="1.4" />
++      </g>
++      <path d="M360 20v70M325 55h70M337 32l46 46M383 32l-46 46" stroke="currentColor" strokeWidth="2" />
++      <path d="m360 34 7 21 21 7-21 7-7 21-7-21-21-7 21-7 7-21Z" fill="currentColor" fillOpacity=".14" stroke="currentColor" strokeWidth="1.4" />
++      <path d="M170 242v40M150 262h40M530 242v40M510 262h40" stroke="currentColor" strokeWidth="1.5" opacity=".8" />
++      <path d="m170 250 4 12 12 4-12 4-4 12-4-12-12-4 12-4 4-12ZM550 250l4 12 12 4-12 4-4 12-4-12-12-4 12-4 4-12Z" stroke="currentColor" strokeWidth="1.1" />
++    </svg>
++  );
++}
+ 
+-      <path
+-        d="M0 201c30-15 57-18 86-11 29 7 52 6 72-1 20-7 41-4 62 10v21H0v-19Z"
+-        fill="#090a16"
+-      />
++export function GenericTarotFace({ label, ...props }: IconProps & { label?: string }) {
++  return (
++    <svg viewBox="0 0 180 310" fill="none" aria-hidden="true" {...props}>
++      <defs>
++        <linearGradient id="faceBg" x1="90" y1="0" x2="90" y2="310" gradientUnits="userSpaceOnUse">
++          <stop stopColor="#4e6681" /><stop offset=".48" stopColor="#d49d62" /><stop offset="1" stopColor="#2c2634" />
++        </linearGradient>
++      </defs>
++      <rect x="2" y="2" width="176" height="306" rx="6" fill="#d7bd83" stroke="#8d7042" strokeWidth="4" />
++      <rect x="9" y="9" width="162" height="292" rx="3" fill="url(#faceBg)" stroke="#292235" strokeWidth="2" />
++      <circle cx="90" cy="86" r="39" fill="#e8bd68" stroke="#573c2c" strokeWidth="3" />
++      <g stroke="#5e3d2d" strokeWidth="3" strokeLinecap="round">
++        <path d="M90 27V8M90 164v-19M31 86H12M168 86h-19M49 45 35 31M145 141l-14-14M131 45l14-14M35 141l14-14" />
++      </g>
++      <path d="M72 84c5-5 11-5 16 0M92 84c5-5 11-5 16 0M84 105c4 4 8 4 12 0" stroke="#493127" strokeWidth="3" strokeLinecap="round" />
++      <path d="M24 276c13-66 44-97 66-97s53 31 66 97H24Z" fill="#304054" stroke="#3c2a34" strokeWidth="3" />
++      <path d="M56 268c8-37 20-58 34-58 14 0 27 21 34 58" stroke="#d39a55" strokeWidth="7" />
++      <path d="M10 282h160v19H10z" fill="#e8d09b" />
++      {label ? <text x="90" y="296" textAnchor="middle" fill="#241b1c" fontSize="10" fontFamily="Georgia, serif">{label.toUpperCase()}</text> : null}
+     </svg>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/components/layout/AppShell.tsx b/components/layout/AppShell.tsx
+index fca31c7..7b30091 100644
+--- a/components/layout/AppShell.tsx
++++ b/components/layout/AppShell.tsx
+@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
+ import { useState, type ReactNode } from "react";
+ import {
+   AboutIcon,
++  ArrowLeftIcon,
+   BrandMarkIcon,
+   CloseIcon,
+   MenuIcon,
+   NewReadingIcon,
+   ReadingsIcon,
+   SidebarLandscape,
+-  SpreadsIcon,
+ } from "@/components/icons/ArcanaIcons";
+ 
+ type AppShellProps = {
+@@ -22,16 +22,17 @@ export function AppShell({ children }: AppShellProps) {
+   const pathname = usePathname();
+   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+ 
+-  const newReadingIsActive = pathname === "/readings/new";
+-
+-  const spreadsIsActive =
+-    pathname === "/spreads" || pathname.startsWith("/spreads/");
++  const newReadingIsActive =
++    pathname === "/spreads" ||
++    pathname.startsWith("/spreads/") ||
++    pathname === "/readings/new";
+ 
+   const readingsIsActive =
+     pathname === "/readings" ||
+     (pathname.startsWith("/readings/") && pathname !== "/readings/new");
+ 
+   const aboutIsActive = pathname === "/about";
++  const isSpreadDetail = pathname.startsWith("/spreads/");
+ 
+   function closeSidebar() {
+     setIsSidebarOpen(false);
+@@ -58,10 +59,17 @@ export function AppShell({ children }: AppShellProps) {
+ 
+       <aside className={`arcana-sidebar ${isSidebarOpen ? "is-open" : ""}`}>
+         <div className="sidebar-top-row">
+-          <Link href="/" className="sidebar-brand" onClick={closeSidebar}>
+-            <BrandMarkIcon className="sidebar-brand-icon" />
+-            <span>Arcana AI</span>
+-          </Link>
++          {isSpreadDetail ? (
++            <Link href="/spreads" className="sidebar-back-link" onClick={closeSidebar}>
++              <ArrowLeftIcon />
++              <span>Back</span>
++            </Link>
++          ) : (
++            <Link href="/" className="sidebar-brand" onClick={closeSidebar}>
++              <BrandMarkIcon className="sidebar-brand-icon" />
++              <span>Arcana AI</span>
++            </Link>
++          )}
+ 
+           <button
+             type="button"
+@@ -75,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
+ 
+         <nav className="sidebar-nav" aria-label="Main navigation">
+           <Link
+-            href="/readings/new"
++            href="/spreads"
+             className={`sidebar-nav-link ${
+               newReadingIsActive ? "is-active" : ""
+             }`}
+@@ -86,23 +94,9 @@ export function AppShell({ children }: AppShellProps) {
+             <span>New Reading</span>
+           </Link>
+ 
+-          <Link
+-            href="/spreads"
+-            className={`sidebar-nav-link ${
+-              spreadsIsActive ? "is-active" : ""
+-            }`}
+-            aria-current={spreadsIsActive ? "page" : undefined}
+-            onClick={closeSidebar}
+-          >
+-            <SpreadsIcon />
+-            <span>Spreads</span>
+-          </Link>
+-
+           <Link
+             href="/readings"
+-            className={`sidebar-nav-link ${
+-              readingsIsActive ? "is-active" : ""
+-            }`}
++            className={`sidebar-nav-link ${readingsIsActive ? "is-active" : ""}`}
+             aria-current={readingsIsActive ? "page" : undefined}
+             onClick={closeSidebar}
+           >
+@@ -112,9 +106,7 @@ export function AppShell({ children }: AppShellProps) {
+ 
+           <Link
+             href="/about"
+-            className={`sidebar-nav-link ${
+-              aboutIsActive ? "is-active" : ""
+-            }`}
++            className={`sidebar-nav-link ${aboutIsActive ? "is-active" : ""}`}
+             aria-current={aboutIsActive ? "page" : undefined}
+             onClick={closeSidebar}
+           >
+@@ -137,4 +129,4 @@ export function AppShell({ children }: AppShellProps) {
+       <main className="arcana-main">{children}</main>
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/components/readings/CreateReadingForm.tsx b/components/readings/CreateReadingForm.tsx
+new file mode 100644
+index 0000000..1c1a012
+--- /dev/null
++++ b/components/readings/CreateReadingForm.tsx
+@@ -0,0 +1,115 @@
++"use client";
++
++import { useRouter } from "next/navigation";
++import { useState, type ChangeEvent, type FormEvent } from "react";
++import { SparkleIcon, TarotCardBack } from "@/components/icons/ArcanaIcons";
++import { createReading } from "@/lib/api";
++import type { SpreadDetail } from "@/lib/types";
++
++type CreateReadingFormProps = {
++  spread: SpreadDetail;
++};
++
++const MAX_CONTEXT_LENGTH = 500;
++
++export function CreateReadingForm({ spread }: CreateReadingFormProps) {
++  const router = useRouter();
++  const [userContext, setUserContext] = useState("");
++  const [isSubmitting, setIsSubmitting] = useState(false);
++  const [errorMessage, setErrorMessage] = useState<string | null>(null);
++
++  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
++    event.preventDefault();
++    setErrorMessage(null);
++    setIsSubmitting(true);
++
++    try {
++      const reading = await createReading({
++        spreadKey: spread.key,
++        userContext: userContext.trim() || null,
++      });
++
++      router.push(`/readings/${reading.id}`);
++    } catch (error) {
++      setErrorMessage(
++        error instanceof Error
++          ? error.message
++          : "The reading could not be created.",
++      );
++      setIsSubmitting(false);
++    }
++  }
++
++  return (
++    <form className="spread-detail-form" onSubmit={handleSubmit}>
++      <div className="spread-detail-columns">
++        <section className="spread-positions-section" aria-labelledby="positions-title">
++          <h2 id="positions-title">Positions</h2>
++
++          <div className="position-list">
++            {spread.positions.map((position) => (
++              <article key={position.key} className="position-row">
++                <span className="position-number">{position.order}</span>
++                <div>
++                  <h3>{position.title}</h3>
++                  <p>{position.description}</p>
++                </div>
++              </article>
++            ))}
++          </div>
++        </section>
++
++        <div className="spread-question-column">
++          <div className="spread-card-preview-panel" aria-hidden="true">
++            <div className="spread-detail-card-row">
++              {Array.from({ length: Math.min(spread.cardCount, 5) }).map(
++                (_, index) => (
++                  <div key={index} className="spread-detail-card-item">
++                    <TarotCardBack />
++                    <span>{index + 1}</span>
++                  </div>
++                ),
++              )}
++            </div>
++          </div>
++
++          <section className="question-panel">
++            <h2>Your question (optional)</h2>
++            <p>Add your question or context to focus your reading.</p>
++
++            <label htmlFor="user-context" className="sr-only">
++              Your question or context
++            </label>
++            <textarea
++              id="user-context"
++              value={userContext}
++              maxLength={MAX_CONTEXT_LENGTH}
++              placeholder="What would you like guidance on?"
++              onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
++                setUserContext(event.target.value)
++              }
++              disabled={isSubmitting}
++            />
++
++            <span className="context-counter">
++              {userContext.length} / {MAX_CONTEXT_LENGTH}
++            </span>
++          </section>
++        </div>
++      </div>
++
++      {errorMessage ? (
++        <p className="form-error" role="alert">
++          {errorMessage}
++        </p>
++      ) : null}
++
++      <button type="submit" className="create-reading-button" disabled={isSubmitting}>
++        <span>{isSubmitting ? "Creating reading..." : "Create reading"}</span>
++        <SparkleIcon />
++      </button>
++
++      <p className="create-reading-note">We will draw the cards for you.</p>
++    </form>
++  );
++}
+diff --git a/components/readings/ReadingHistory.tsx b/components/readings/ReadingHistory.tsx
+new file mode 100644
+index 0000000..51f7a2c
+--- /dev/null
++++ b/components/readings/ReadingHistory.tsx
+@@ -0,0 +1,198 @@
++"use client";
++
++import Link from "next/link";
++import { useMemo, useState, type ChangeEvent } from "react";
++import {
++  ChevronDownIcon,
++  ChevronRightIcon,
++  SearchIcon,
++  TarotCardBack,
++} from "@/components/icons/ArcanaIcons";
++import type { PagedReadingsResponse, ReadingSummary } from "@/lib/types";
++
++type ReadingHistoryProps = {
++  result: PagedReadingsResponse;
++};
++
++type SortOrder = "newest" | "oldest";
++
++function formatReadingDate(value: string): { date: string; time: string } {
++  const date = new Date(value);
++
++  return {
++    date: new Intl.DateTimeFormat("en-US", {
++      month: "short",
++      day: "numeric",
++      year: "numeric",
++    }).format(date),
++    time: new Intl.DateTimeFormat("en-US", {
++      hour: "numeric",
++      minute: "2-digit",
++    }).format(date),
++  };
++}
++
++function getReadingTitle(reading: ReadingSummary): string {
++  return reading.userContext?.trim() || `${reading.spreadName} reading`;
++}
++
++export function ReadingHistory({ result }: ReadingHistoryProps) {
++  const [query, setQuery] = useState("");
++  const [spreadKey, setSpreadKey] = useState("all");
++  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
++
++  const spreadOptions = useMemo(() => {
++    const unique = new Map<string, string>();
++    result.items.forEach((reading) => unique.set(reading.spreadKey, reading.spreadName));
++    return [...unique.entries()];
++  }, [result.items]);
++
++  const visibleReadings = useMemo(() => {
++    const normalizedQuery = query.trim().toLowerCase();
++
++    const filtered = result.items.filter((reading) => {
++      const title = getReadingTitle(reading).toLowerCase();
++      const matchesQuery =
++        !normalizedQuery ||
++        title.includes(normalizedQuery) ||
++        reading.spreadName.toLowerCase().includes(normalizedQuery);
++      const matchesSpread = spreadKey === "all" || reading.spreadKey === spreadKey;
++      return matchesQuery && matchesSpread;
++    });
++
++    return [...filtered].sort((first, second) => {
++      const firstDate = new Date(first.createdAtUtc).getTime();
++      const secondDate = new Date(second.createdAtUtc).getTime();
++      return sortOrder === "newest" ? secondDate - firstDate : firstDate - secondDate;
++    });
++  }, [query, result.items, sortOrder, spreadKey]);
++
++  return (
++    <>
++      <div className="history-toolbar">
++        <label className="history-search">
++          <span className="sr-only">Search your readings</span>
++          <SearchIcon />
++          <input
++            type="search"
++            placeholder="Search your readings..."
++            value={query}
++            onChange={(event: ChangeEvent<HTMLInputElement>) =>
++              setQuery(event.target.value)
++            }
++          />
++        </label>
++
++        <label className="history-select">
++          <span className="sr-only">Filter by spread</span>
++          <select value={spreadKey} onChange={(event: ChangeEvent<HTMLSelectElement>) =>
++            setSpreadKey(event.target.value)
++          }>
++            <option value="all">All Spreads</option>
++            {spreadOptions.map(([key, name]) => (
++              <option key={key} value={key}>
++                {name}
++              </option>
++            ))}
++          </select>
++          <ChevronDownIcon />
++        </label>
++
++        <label className="history-select">
++          <span className="sr-only">Sort readings</span>
++          <select
++            value={sortOrder}
++            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
++              setSortOrder(event.target.value as SortOrder)
++            }
++          >
++            <option value="newest">Newest First</option>
++            <option value="oldest">Oldest First</option>
++          </select>
++          <ChevronDownIcon />
++        </label>
++      </div>
++
++      {visibleReadings.length === 0 ? (
++        <div className="history-empty">
++          <h2>No readings found</h2>
++          <p>Create a new reading or adjust your search filters.</p>
++          <Link href="/spreads">Begin a reading</Link>
++        </div>
++      ) : (
++        <div className="reading-history-list">
++          {visibleReadings.map((reading) => {
++            const formatted = formatReadingDate(reading.createdAtUtc);
++
++            return (
++              <Link key={reading.id} href={`/readings/${reading.id}`} className="reading-history-row">
++                <TarotCardBack />
++
++                <div className="reading-history-copy">
++                  <h2>{getReadingTitle(reading)}</h2>
++                  <p>{reading.spreadName}</p>
++                </div>
++
++                <time dateTime={reading.createdAtUtc} className="reading-history-date">
++                  <span>{formatted.date}</span>
++                  <span>{formatted.time}</span>
++                </time>
++
++                <span className="reading-card-count">
++                  {reading.cardCount} {reading.cardCount === 1 ? "card" : "cards"}
++                </span>
++
++                <ChevronRightIcon className="reading-history-chevron" />
++              </Link>
++            );
++          })}
++        </div>
++      )}
++
++      {result.totalPages > 1 ? (
++        <nav className="pagination" aria-label="Reading history pages">
++          <Link
++            href={`/readings?page=${Math.max(1, result.page - 1)}`}
++            aria-disabled={result.page <= 1}
++            className={result.page <= 1 ? "is-disabled" : ""}
++          >
++            ‹
++          </Link>
++
++          {Array.from({ length: result.totalPages }, (_, index) => index + 1)
++            .filter(
++              (page) =>
++                page === 1 ||
++                page === result.totalPages ||
++                Math.abs(page - result.page) <= 1,
++            )
++            .map((page, index, pages) => {
++              const previous = pages[index - 1];
++              const needsEllipsis = previous !== undefined && page - previous > 1;
++
++              return (
++                <span key={page} className="pagination-fragment">
++                  {needsEllipsis ? <span className="pagination-ellipsis">…</span> : null}
++                  <Link
++                    href={`/readings?page=${page}`}
++                    className={page === result.page ? "is-current" : ""}
++                    aria-current={page === result.page ? "page" : undefined}
++                  >
++                    {page}
++                  </Link>
++                </span>
++              );
++            })}
++
++          <Link
++            href={`/readings?page=${Math.min(result.totalPages, result.page + 1)}`}
++            aria-disabled={result.page >= result.totalPages}
++            className={result.page >= result.totalPages ? "is-disabled" : ""}
++          >
++            ›
++          </Link>
++        </nav>
++      ) : null}
++    </>
++  );
++}
+diff --git a/components/spreads/SpreadCatalog.tsx b/components/spreads/SpreadCatalog.tsx
+index f260fca..e426ff2 100644
+--- a/components/spreads/SpreadCatalog.tsx
++++ b/components/spreads/SpreadCatalog.tsx
+@@ -1,10 +1,10 @@
+ "use client";
+ 
+ import Link from "next/link";
+-import { useMemo, useState } from "react";
++import { useMemo, useState, type ChangeEvent } from "react";
+ import {
++  BrandMarkIcon,
+   ChevronDownIcon,
+-  ChevronRightIcon,
+   SearchIcon,
+   TarotCardBack,
+ } from "@/components/icons/ArcanaIcons";
+@@ -14,180 +14,157 @@ type SpreadCatalogProps = {
+   spreads: SpreadSummary[];
+ };
+ 
+-type CardCountFilter = "all" | "one" | "two-to-five" | "six-plus";
++type SpreadCategory = "all" | "quick" | "general" | "relationship" | "deep";
+ 
+-type SortOption = "recommended" | "alphabetical" | "fewest" | "most";
++function getSpreadCategory(spread: SpreadSummary): Exclude<SpreadCategory, "all"> {
++  if (spread.key.includes("love") || spread.name.toLowerCase().includes("relationship")) {
++    return "relationship";
++  }
++
++  if (spread.cardCount === 1) {
++    return "quick";
++  }
++
++  if (spread.cardCount >= 6) {
++    return "deep";
++  }
++
++  return "general";
++}
++
++function getDisplayName(spread: SpreadSummary): string {
++  return spread.name
++    .replace(" Tarot Spread", "")
++    .replace(" Spread", "")
++    .replace("Three-Card Love", "Relationship")
++    .replace("Three-Card", "Three Card")
++    .replace("Five-Card", "Five Card")
++    .replace("One-Card", "One Card");
++}
++
++function getCompactDescription(spread: SpreadSummary): string {
++  const normalized = spread.shortDescription.replace(/\.$/, "");
++
++  if (spread.key === "one-card") return "Get a quick insight or guidance.";
++  if (spread.key === "three-card") return "Past, present and future.";
++  if (spread.key === "five-card") return "Explore a situation in more depth.";
++  if (spread.key === "three-card-love") return "Insights about your relationships.";
++  if (spread.key === "celtic-cross") return "A full overview of your situation.";
++
++  return `${normalized}.`;
++}
+ 
+ export function SpreadCatalog({ spreads }: SpreadCatalogProps) {
+   const [query, setQuery] = useState("");
+-  const [cardCountFilter, setCardCountFilter] =
+-    useState<CardCountFilter>("all");
+-  const [sortOption, setSortOption] =
+-    useState<SortOption>("recommended");
++  const [category, setCategory] = useState<SpreadCategory>("all");
+ 
+   const visibleSpreads = useMemo(() => {
+     const normalizedQuery = query.trim().toLowerCase();
+ 
+-    const filteredSpreads = spreads.filter((spread) => {
++    return spreads.filter((spread) => {
+       const matchesQuery =
+         normalizedQuery.length === 0 ||
+         spread.name.toLowerCase().includes(normalizedQuery) ||
+         spread.shortDescription.toLowerCase().includes(normalizedQuery) ||
+         spread.intent.toLowerCase().includes(normalizedQuery);
+ 
+-      const matchesCardCount =
+-        cardCountFilter === "all" ||
+-        (cardCountFilter === "one" && spread.cardCount === 1) ||
+-        (cardCountFilter === "two-to-five" &&
+-          spread.cardCount >= 2 &&
+-          spread.cardCount <= 5) ||
+-        (cardCountFilter === "six-plus" && spread.cardCount >= 6);
++      const matchesCategory =
++        category === "all" || getSpreadCategory(spread) === category;
+ 
+-      return matchesQuery && matchesCardCount;
++      return matchesQuery && matchesCategory;
+     });
+-
+-    if (sortOption === "alphabetical") {
+-      return [...filteredSpreads].sort((firstSpread, secondSpread) =>
+-        firstSpread.name.localeCompare(secondSpread.name),
+-      );
+-    }
+-
+-    if (sortOption === "fewest") {
+-      return [...filteredSpreads].sort(
+-        (firstSpread, secondSpread) =>
+-          firstSpread.cardCount - secondSpread.cardCount,
+-      );
+-    }
+-
+-    if (sortOption === "most") {
+-      return [...filteredSpreads].sort(
+-        (firstSpread, secondSpread) =>
+-          secondSpread.cardCount - firstSpread.cardCount,
+-      );
+-    }
+-
+-    return filteredSpreads;
+-  }, [cardCountFilter, query, sortOption, spreads]);
++  }, [category, query, spreads]);
+ 
+   return (
+     <>
+-      <div className="catalog-controls">
+-        <label className="catalog-search">
+-          <span className="sr-only">Search tarot spreads</span>
+-
++      <div className="spread-toolbar">
++        <label className="spread-search">
++          <span className="sr-only">Search spreads</span>
+           <SearchIcon />
+-
+           <input
+             type="search"
+             placeholder="Search spreads..."
+             value={query}
+-            onChange={(event) => setQuery(event.target.value)}
+-          />
+-        </label>
+-
+-        <label className="catalog-select-wrapper">
+-          <span className="sr-only">Filter by number of cards</span>
+-
+-          <select
+-            value={cardCountFilter}
+-            onChange={(event) =>
+-              setCardCountFilter(event.target.value as CardCountFilter)
++            onChange={(event: ChangeEvent<HTMLInputElement>) =>
++              setQuery(event.target.value)
+             }
+-          >
+-            <option value="all">All Spreads</option>
+-            <option value="one">One Card</option>
+-            <option value="two-to-five">2–5 Cards</option>
+-            <option value="six-plus">6+ Cards</option>
+-          </select>
+-
+-          <ChevronDownIcon />
++          />
+         </label>
+ 
+-        <label className="catalog-select-wrapper">
+-          <span className="sr-only">Sort spreads</span>
+-
++        <label className="spread-category-select">
++          <span className="sr-only">Filter by category</span>
+           <select
+-            value={sortOption}
+-            onChange={(event) =>
+-              setSortOption(event.target.value as SortOption)
++            value={category}
++            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
++              setCategory(event.target.value as SpreadCategory)
+             }
+           >
+-            <option value="recommended">Recommended</option>
+-            <option value="alphabetical">A–Z</option>
+-            <option value="fewest">Fewest Cards</option>
+-            <option value="most">Most Cards</option>
++            <option value="all">All Categories</option>
++            <option value="quick">Quick Insight</option>
++            <option value="general">General Guidance</option>
++            <option value="relationship">Relationships</option>
++            <option value="deep">In-depth</option>
+           </select>
+-
+           <ChevronDownIcon />
+         </label>
+       </div>
+ 
+       {visibleSpreads.length === 0 ? (
+-        <div className="catalog-empty-state">
+-          <EmptySearchIcon />
+-
++        <div className="spread-empty">
++          <BrandMarkIcon />
+           <h2>No matching spreads</h2>
+-
+-          <p>Try another search phrase or card-count filter.</p>
++          <p>Try a different search or category.</p>
+         </div>
+       ) : (
+-        <section className="spread-list" aria-label="Predefined tarot spreads">
++        <section className="spread-card-grid" aria-label="Tarot spreads">
+           {visibleSpreads.map((spread) => (
+             <Link
+               key={spread.key}
+-              href={`/readings/new?spread=${encodeURIComponent(spread.key)}`}
+-              className="spread-row"
+-              aria-label={`Start a ${spread.name} reading`}
++              href={`/spreads/${encodeURIComponent(spread.key)}`}
++              className="spread-option-card"
+             >
+-              <TarotCardBack className="spread-card-back" />
+-
+-              <span className="spread-copy">
+-                <strong>{spread.name}</strong>
+-
+-                <span className="spread-description">
+-                  {spread.shortDescription}
+-                </span>
+-
+-                <span className="spread-intent">{spread.intent}</span>
+-              </span>
+-
+-              <span className="spread-count">
+-                {spread.cardCount}{" "}
+-                {spread.cardCount === 1 ? "card" : "cards"}
++              <SpreadPreview cardCount={spread.cardCount} spreadKey={spread.key} />
++              <h2>{getDisplayName(spread)}</h2>
++              <p>{getCompactDescription(spread)}</p>
++              <span>
++                {spread.cardCount} {spread.cardCount === 1 ? "card" : "cards"}
+               </span>
+-
+-              <ChevronRightIcon className="spread-chevron" />
+             </Link>
+           ))}
+         </section>
+       )}
++
++      <div className="spread-help-banner">
++        <BrandMarkIcon />
++        <div>
++          <strong>Can&apos;t decide?</strong>
++          <span>Browse spreads to find the one that speaks to you.</span>
++        </div>
++      </div>
+     </>
+   );
+ }
+ 
+-function EmptySearchIcon() {
++function SpreadPreview({
++  cardCount,
++  spreadKey,
++}: {
++  cardCount: number;
++  spreadKey: string;
++}) {
++  const previewCount = Math.min(cardCount, 5);
++  const cards = Array.from({ length: previewCount });
++
+   return (
+-    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+-      <path
+-        d="M24 5c1.2 8 4.5 11.7 12 13-7.5 1.3-10.8 5-12 13-1.2-8-4.5-11.7-12-13C19.5 16.7 22.8 13 24 5Z"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-      />
+-
+-      <circle
+-        cx="36"
+-        cy="34"
+-        r="5"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-      />
+-
+-      <path
+-        d="m39.5 37.5 4 4"
+-        stroke="currentColor"
+-        strokeWidth="1.8"
+-        strokeLinecap="round"
+-      />
+-    </svg>
++    <div
++      className={`spread-preview spread-preview-${Math.min(previewCount, 5)} ${
++        spreadKey === "three-card-love" ? "spread-preview-relationship" : ""
++      }`}
++      aria-hidden="true"
++    >
++      {cards.map((_, index) => (
++        <TarotCardBack key={index} />
++      ))}
++    </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/lib/api.ts b/lib/api.ts
+index 54f9b9c..74c3d68 100644
+--- a/lib/api.ts
++++ b/lib/api.ts
+@@ -1,5 +1,8 @@
+ import type {
++  CreateReadingRequest,
+   PagedReadingsResponse,
++  Reading,
++  SpreadDetail,
+   SpreadSummary,
+ } from "./types";
+ 
+@@ -15,52 +18,109 @@ function requireApiBaseUrl(): string {
+   return apiBaseUrl;
+ }
+ 
+-/**
+- * Retrieves all available tarot spreads.
+- */
++async function readErrorResponse(response: Response): Promise<string> {
++  const responseBody = await response.text();
++
++  if (!responseBody) {
++    return `The backend returned HTTP ${response.status}.`;
++  }
++
++  try {
++    const parsed = JSON.parse(responseBody) as { error?: string };
++    return parsed.error ?? responseBody;
++  } catch {
++    return responseBody;
++  }
++}
++
++/** Retrieves all available predefined spreads. */
+ export async function getSpreads(): Promise<SpreadSummary[]> {
+   const baseUrl = requireApiBaseUrl();
+-
+   const response = await fetch(`${baseUrl}/api/spreads`, {
+     cache: "no-store",
+   });
+ 
+   if (!response.ok) {
+-    const responseBody = await response.text();
+-
+-    throw new Error(
+-      `Failed to load spreads. The backend returned HTTP ${response.status}.` +
+-        (responseBody ? ` Response: ${responseBody}` : ""),
+-    );
++    throw new Error(`Failed to load spreads. ${await readErrorResponse(response)}`);
+   }
+ 
+   return (await response.json()) as SpreadSummary[];
+ }
+ 
+-/**
+- * Retrieves one page of saved tarot readings.
+- */
++/** Retrieves the full definition of one predefined spread. */
++export async function getSpreadByKey(
++  spreadKey: string,
++): Promise<SpreadDetail | null> {
++  const baseUrl = requireApiBaseUrl();
++  const response = await fetch(
++    `${baseUrl}/api/spreads/${encodeURIComponent(spreadKey)}`,
++    { cache: "no-store" },
++  );
++
++  if (response.status === 404) {
++    return null;
++  }
++
++  if (!response.ok) {
++    throw new Error(`Failed to load the spread. ${await readErrorResponse(response)}`);
++  }
++
++  return (await response.json()) as SpreadDetail;
++}
++
++/** Creates and persists a reading. */
++export async function createReading(
++  request: CreateReadingRequest,
++): Promise<Reading> {
++  const baseUrl = requireApiBaseUrl();
++  const response = await fetch(`${baseUrl}/api/readings`, {
++    method: "POST",
++    headers: {
++      "Content-Type": "application/json",
++    },
++    body: JSON.stringify(request),
++  });
++
++  if (!response.ok) {
++    throw new Error(`Failed to create the reading. ${await readErrorResponse(response)}`);
++  }
++
++  return (await response.json()) as Reading;
++}
++
++/** Retrieves one saved reading. */
++export async function getReadingById(id: string): Promise<Reading | null> {
++  const baseUrl = requireApiBaseUrl();
++  const response = await fetch(
++    `${baseUrl}/api/readings/${encodeURIComponent(id)}`,
++    { cache: "no-store" },
++  );
++
++  if (response.status === 404) {
++    return null;
++  }
++
++  if (!response.ok) {
++    throw new Error(`Failed to load the reading. ${await readErrorResponse(response)}`);
++  }
++
++  return (await response.json()) as Reading;
++}
++
++/** Retrieves one page of saved readings. */
+ export async function getReadings(
+   page = 1,
+   pageSize = 5,
+ ): Promise<PagedReadingsResponse> {
+   const baseUrl = requireApiBaseUrl();
+-
+   const response = await fetch(
+     `${baseUrl}/api/readings?page=${page}&pageSize=${pageSize}`,
+-    {
+-      cache: "no-store",
+-    },
++    { cache: "no-store" },
+   );
+ 
+   if (!response.ok) {
+-    const responseBody = await response.text();
+-
+-    throw new Error(
+-      `Failed to load readings. The backend returned HTTP ${response.status}.` +
+-        (responseBody ? ` Response: ${responseBody}` : ""),
+-    );
++    throw new Error(`Failed to load readings. ${await readErrorResponse(response)}`);
+   }
+ 
+   return (await response.json()) as PagedReadingsResponse;
+-}
+\ No newline at end of file
++}
+diff --git a/lib/types.ts b/lib/types.ts
+index 85b1bf3..4ff5d93 100644
+--- a/lib/types.ts
++++ b/lib/types.ts
+@@ -1,8 +1,4 @@
+-/**
+- * A short representation of a tarot spread returned by GET /api/spreads.
+- *
+- * This type mirrors SpreadSummaryResponse from the ASP.NET Core backend.
+- */
++/** Compact spread returned by GET /api/spreads. */
+ export type SpreadSummary = {
+   key: string;
+   name: string;
+@@ -11,9 +7,53 @@ export type SpreadSummary = {
+   cardCount: number;
+ };
+ 
+-/**
+- * One reading item returned by GET /api/readings.
+- */
++/** One ordered position in a predefined spread. */
++export type SpreadPosition = {
++  order: number;
++  key: string;
++  title: string;
++  prompt: string;
++  description: string;
++};
++
++/** Complete spread returned by GET /api/spreads/{spreadKey}. */
++export type SpreadDetail = SpreadSummary & {
++  description: string;
++  positions: SpreadPosition[];
++};
++
++/** Request accepted by POST /api/readings. */
++export type CreateReadingRequest = {
++  spreadKey: string;
++  userContext: string | null;
++};
++
++/** One drawn card and its saved spread position. */
++export type ReadingCard = {
++  positionOrder: number;
++  positionKey: string;
++  positionTitle: string;
++  positionPrompt: string;
++  positionDescription: string;
++  cardId: string;
++  cardName: string;
++  arcana: string;
++  suit: string | null;
++  orientation: string;
++  meaning: string;
++};
++
++/** Complete reading returned by POST /api/readings and GET /api/readings/{id}. */
++export type Reading = {
++  id: string;
++  userContext: string | null;
++  spreadKey: string;
++  spreadName: string;
++  cards: ReadingCard[];
++  createdAtUtc: string;
++};
++
++/** One reading item returned by GET /api/readings. */
+ export type ReadingSummary = {
+   id: string;
+   userContext: string | null;
+@@ -23,13 +63,11 @@ export type ReadingSummary = {
+   createdAtUtc: string;
+ };
+ 
+-/**
+- * Paginated response returned by GET /api/readings.
+- */
++/** Paginated response returned by GET /api/readings. */
+ export type PagedReadingsResponse = {
+   items: ReadingSummary[];
+   page: number;
+   pageSize: number;
+   totalCount: number;
+   totalPages: number;
+-};
+\ No newline at end of file
++};

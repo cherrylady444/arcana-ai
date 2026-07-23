@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
   AboutIcon,
+  ArrowLeftIcon,
   BrandMarkIcon,
   CloseIcon,
   MenuIcon,
   NewReadingIcon,
   ReadingsIcon,
   SidebarLandscape,
-  SpreadsIcon,
 } from "@/components/icons/ArcanaIcons";
 
 type AppShellProps = {
@@ -22,16 +22,17 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const newReadingIsActive = pathname === "/readings/new";
-
-  const spreadsIsActive =
-    pathname === "/spreads" || pathname.startsWith("/spreads/");
+  const newReadingIsActive =
+    pathname === "/spreads" ||
+    pathname.startsWith("/spreads/") ||
+    pathname === "/readings/new";
 
   const readingsIsActive =
     pathname === "/readings" ||
     (pathname.startsWith("/readings/") && pathname !== "/readings/new");
 
   const aboutIsActive = pathname === "/about";
+  const isSpreadDetail = pathname.startsWith("/spreads/");
 
   function closeSidebar() {
     setIsSidebarOpen(false);
@@ -58,10 +59,17 @@ export function AppShell({ children }: AppShellProps) {
 
       <aside className={`arcana-sidebar ${isSidebarOpen ? "is-open" : ""}`}>
         <div className="sidebar-top-row">
-          <Link href="/" className="sidebar-brand" onClick={closeSidebar}>
-            <BrandMarkIcon className="sidebar-brand-icon" />
-            <span>Arcana AI</span>
-          </Link>
+          {isSpreadDetail ? (
+            <Link href="/spreads" className="sidebar-back-link" onClick={closeSidebar}>
+              <ArrowLeftIcon />
+              <span>Back</span>
+            </Link>
+          ) : (
+            <Link href="/" className="sidebar-brand" onClick={closeSidebar}>
+              <BrandMarkIcon className="sidebar-brand-icon" />
+              <span>Arcana AI</span>
+            </Link>
+          )}
 
           <button
             type="button"
@@ -75,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <nav className="sidebar-nav" aria-label="Main navigation">
           <Link
-            href="/readings/new"
+            href="/spreads"
             className={`sidebar-nav-link ${
               newReadingIsActive ? "is-active" : ""
             }`}
@@ -87,22 +95,8 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
 
           <Link
-            href="/spreads"
-            className={`sidebar-nav-link ${
-              spreadsIsActive ? "is-active" : ""
-            }`}
-            aria-current={spreadsIsActive ? "page" : undefined}
-            onClick={closeSidebar}
-          >
-            <SpreadsIcon />
-            <span>Spreads</span>
-          </Link>
-
-          <Link
             href="/readings"
-            className={`sidebar-nav-link ${
-              readingsIsActive ? "is-active" : ""
-            }`}
+            className={`sidebar-nav-link ${readingsIsActive ? "is-active" : ""}`}
             aria-current={readingsIsActive ? "page" : undefined}
             onClick={closeSidebar}
           >
@@ -112,9 +106,7 @@ export function AppShell({ children }: AppShellProps) {
 
           <Link
             href="/about"
-            className={`sidebar-nav-link ${
-              aboutIsActive ? "is-active" : ""
-            }`}
+            className={`sidebar-nav-link ${aboutIsActive ? "is-active" : ""}`}
             aria-current={aboutIsActive ? "page" : undefined}
             onClick={closeSidebar}
           >

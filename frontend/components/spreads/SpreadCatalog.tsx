@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import {
+  BrandMarkIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   SearchIcon,
   TarotCardBack,
 } from "@/components/icons/ArcanaIcons";
@@ -14,180 +14,157 @@ type SpreadCatalogProps = {
   spreads: SpreadSummary[];
 };
 
-type CardCountFilter = "all" | "one" | "two-to-five" | "six-plus";
+type SpreadCategory = "all" | "quick" | "general" | "relationship" | "deep";
 
-type SortOption = "recommended" | "alphabetical" | "fewest" | "most";
+function getSpreadCategory(spread: SpreadSummary): Exclude<SpreadCategory, "all"> {
+  if (spread.key.includes("love") || spread.name.toLowerCase().includes("relationship")) {
+    return "relationship";
+  }
+
+  if (spread.cardCount === 1) {
+    return "quick";
+  }
+
+  if (spread.cardCount >= 6) {
+    return "deep";
+  }
+
+  return "general";
+}
+
+function getDisplayName(spread: SpreadSummary): string {
+  return spread.name
+    .replace(" Tarot Spread", "")
+    .replace(" Spread", "")
+    .replace("Three-Card Love", "Relationship")
+    .replace("Three-Card", "Three Card")
+    .replace("Five-Card", "Five Card")
+    .replace("One-Card", "One Card");
+}
+
+function getCompactDescription(spread: SpreadSummary): string {
+  const normalized = spread.shortDescription.replace(/\.$/, "");
+
+  if (spread.key === "one-card") return "Get a quick insight or guidance.";
+  if (spread.key === "three-card") return "Past, present and future.";
+  if (spread.key === "five-card") return "Explore a situation in more depth.";
+  if (spread.key === "three-card-love") return "Insights about your relationships.";
+  if (spread.key === "celtic-cross") return "A full overview of your situation.";
+
+  return `${normalized}.`;
+}
 
 export function SpreadCatalog({ spreads }: SpreadCatalogProps) {
   const [query, setQuery] = useState("");
-  const [cardCountFilter, setCardCountFilter] =
-    useState<CardCountFilter>("all");
-  const [sortOption, setSortOption] =
-    useState<SortOption>("recommended");
+  const [category, setCategory] = useState<SpreadCategory>("all");
 
   const visibleSpreads = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    const filteredSpreads = spreads.filter((spread) => {
+    return spreads.filter((spread) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         spread.name.toLowerCase().includes(normalizedQuery) ||
         spread.shortDescription.toLowerCase().includes(normalizedQuery) ||
         spread.intent.toLowerCase().includes(normalizedQuery);
 
-      const matchesCardCount =
-        cardCountFilter === "all" ||
-        (cardCountFilter === "one" && spread.cardCount === 1) ||
-        (cardCountFilter === "two-to-five" &&
-          spread.cardCount >= 2 &&
-          spread.cardCount <= 5) ||
-        (cardCountFilter === "six-plus" && spread.cardCount >= 6);
+      const matchesCategory =
+        category === "all" || getSpreadCategory(spread) === category;
 
-      return matchesQuery && matchesCardCount;
+      return matchesQuery && matchesCategory;
     });
-
-    if (sortOption === "alphabetical") {
-      return [...filteredSpreads].sort((firstSpread, secondSpread) =>
-        firstSpread.name.localeCompare(secondSpread.name),
-      );
-    }
-
-    if (sortOption === "fewest") {
-      return [...filteredSpreads].sort(
-        (firstSpread, secondSpread) =>
-          firstSpread.cardCount - secondSpread.cardCount,
-      );
-    }
-
-    if (sortOption === "most") {
-      return [...filteredSpreads].sort(
-        (firstSpread, secondSpread) =>
-          secondSpread.cardCount - firstSpread.cardCount,
-      );
-    }
-
-    return filteredSpreads;
-  }, [cardCountFilter, query, sortOption, spreads]);
+  }, [category, query, spreads]);
 
   return (
     <>
-      <div className="catalog-controls">
-        <label className="catalog-search">
-          <span className="sr-only">Search tarot spreads</span>
-
+      <div className="spread-toolbar">
+        <label className="spread-search">
+          <span className="sr-only">Search spreads</span>
           <SearchIcon />
-
           <input
             type="search"
             placeholder="Search spreads..."
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setQuery(event.target.value)
+            }
           />
         </label>
 
-        <label className="catalog-select-wrapper">
-          <span className="sr-only">Filter by number of cards</span>
-
+        <label className="spread-category-select">
+          <span className="sr-only">Filter by category</span>
           <select
-            value={cardCountFilter}
-            onChange={(event) =>
-              setCardCountFilter(event.target.value as CardCountFilter)
+            value={category}
+            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+              setCategory(event.target.value as SpreadCategory)
             }
           >
-            <option value="all">All Spreads</option>
-            <option value="one">One Card</option>
-            <option value="two-to-five">2–5 Cards</option>
-            <option value="six-plus">6+ Cards</option>
+            <option value="all">All Categories</option>
+            <option value="quick">Quick Insight</option>
+            <option value="general">General Guidance</option>
+            <option value="relationship">Relationships</option>
+            <option value="deep">In-depth</option>
           </select>
-
-          <ChevronDownIcon />
-        </label>
-
-        <label className="catalog-select-wrapper">
-          <span className="sr-only">Sort spreads</span>
-
-          <select
-            value={sortOption}
-            onChange={(event) =>
-              setSortOption(event.target.value as SortOption)
-            }
-          >
-            <option value="recommended">Recommended</option>
-            <option value="alphabetical">A–Z</option>
-            <option value="fewest">Fewest Cards</option>
-            <option value="most">Most Cards</option>
-          </select>
-
           <ChevronDownIcon />
         </label>
       </div>
 
       {visibleSpreads.length === 0 ? (
-        <div className="catalog-empty-state">
-          <EmptySearchIcon />
-
+        <div className="spread-empty">
+          <BrandMarkIcon />
           <h2>No matching spreads</h2>
-
-          <p>Try another search phrase or card-count filter.</p>
+          <p>Try a different search or category.</p>
         </div>
       ) : (
-        <section className="spread-list" aria-label="Predefined tarot spreads">
+        <section className="spread-card-grid" aria-label="Tarot spreads">
           {visibleSpreads.map((spread) => (
             <Link
               key={spread.key}
-              href={`/readings/new?spread=${encodeURIComponent(spread.key)}`}
-              className="spread-row"
-              aria-label={`Start a ${spread.name} reading`}
+              href={`/spreads/${encodeURIComponent(spread.key)}`}
+              className="spread-option-card"
             >
-              <TarotCardBack className="spread-card-back" />
-
-              <span className="spread-copy">
-                <strong>{spread.name}</strong>
-
-                <span className="spread-description">
-                  {spread.shortDescription}
-                </span>
-
-                <span className="spread-intent">{spread.intent}</span>
+              <SpreadPreview cardCount={spread.cardCount} spreadKey={spread.key} />
+              <h2>{getDisplayName(spread)}</h2>
+              <p>{getCompactDescription(spread)}</p>
+              <span>
+                {spread.cardCount} {spread.cardCount === 1 ? "card" : "cards"}
               </span>
-
-              <span className="spread-count">
-                {spread.cardCount}{" "}
-                {spread.cardCount === 1 ? "card" : "cards"}
-              </span>
-
-              <ChevronRightIcon className="spread-chevron" />
             </Link>
           ))}
         </section>
       )}
+
+      <div className="spread-help-banner">
+        <BrandMarkIcon />
+        <div>
+          <strong>Can&apos;t decide?</strong>
+          <span>Browse spreads to find the one that speaks to you.</span>
+        </div>
+      </div>
     </>
   );
 }
 
-function EmptySearchIcon() {
+function SpreadPreview({
+  cardCount,
+  spreadKey,
+}: {
+  cardCount: number;
+  spreadKey: string;
+}) {
+  const previewCount = Math.min(cardCount, 5);
+  const cards = Array.from({ length: previewCount });
+
   return (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path
-        d="M24 5c1.2 8 4.5 11.7 12 13-7.5 1.3-10.8 5-12 13-1.2-8-4.5-11.7-12-13C19.5 16.7 22.8 13 24 5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <circle
-        cx="36"
-        cy="34"
-        r="5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="m39.5 37.5 4 4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div
+      className={`spread-preview spread-preview-${Math.min(previewCount, 5)} ${
+        spreadKey === "three-card-love" ? "spread-preview-relationship" : ""
+      }`}
+      aria-hidden="true"
+    >
+      {cards.map((_, index) => (
+        <TarotCardBack key={index} />
+      ))}
+    </div>
   );
 }

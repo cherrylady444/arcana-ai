@@ -1,24 +1,27 @@
-export default function ReadingsPage() {
+import { ReadingHistory } from "@/components/readings/ReadingHistory";
+import { getReadings } from "@/lib/api";
+
+type ReadingsPageProps = {
+  searchParams: Promise<{
+    page?: string | string[];
+  }>;
+};
+
+export default async function ReadingsPage({ searchParams }: ReadingsPageProps) {
+  const resolved = await searchParams;
+  const rawPage = Array.isArray(resolved.page) ? resolved.page[0] : resolved.page;
+  const parsedPage = Number.parseInt(rawPage ?? "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const result = await getReadings(page, 5);
+
   return (
-    <section className="arcana-page">
-      <header className="page-heading">
-        <p className="page-eyebrow">Arcana AI</p>
-
+    <section className="readings-page">
+      <header className="reference-page-heading readings-heading">
         <h1>Your Readings</h1>
-
-        <p>
-          Your saved tarot journeys and insights will appear here.
-        </p>
+        <p>A collection of your journeys and insights.</p>
       </header>
 
-      <div className="placeholder-panel">
-        <h2>Reading history is coming next</h2>
-
-        <p>
-          This page will be connected to the paginated GET /api/readings
-          endpoint after the create-reading flow is complete.
-        </p>
-      </div>
+      <ReadingHistory result={result} />
     </section>
   );
 }
