@@ -44,6 +44,13 @@ Merg impreuna
   &
 dotnet run --project Tarot.Api
 
+```
+dotnet watch --project Tarot.Api
+```
+->This starts the application and continuously monitors the relevant project files for changes.
+
+When you edit a C# file and save it, dotnet watch tries to apply that change to the running application automatically.
+
 docker compose up -d
 
 or do both in one command

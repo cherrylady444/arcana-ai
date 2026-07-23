@@ -1,65 +1,151 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  BrandMarkIcon,
+  NewReadingIcon,
+  ReadingsIcon,
+  SpreadsIcon,
+  TarotCardBack,
+} from "@/components/icons/ArcanaIcons";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="home-page">
+      <div className="home-stars" aria-hidden="true" />
+
+      <header className="home-header">
+        <Link href="/" className="home-brand" aria-label="Arcana AI homepage">
+          <BrandMarkIcon />
+          <span>Arcana AI</span>
+        </Link>
+
+        <nav className="home-navigation" aria-label="Homepage navigation">
+          <Link href="/spreads">Spreads</Link>
+          <Link href="/readings">Readings</Link>
+          <Link href="/about">About</Link>
+        </nav>
+
+        <Link href="/spreads" className="home-header-action">
+          Begin a reading
+        </Link>
+      </header>
+
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <p className="home-eyebrow">
+            <BrandMarkIcon />
+            Reflection through the cards
+          </p>
+
+          <h1>
+            Find clarity
+            <span> within the arcana.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="home-hero-description">
+            Choose a predefined tarot spread, share an optional question, and
+            receive a reading securely drawn and preserved by Arcana AI.
+          </p>
+
+          <div className="home-hero-actions">
+            <Link href="/spreads" className="home-primary-action">
+              <NewReadingIcon />
+              Explore the spreads
+            </Link>
+
+            <Link href="/readings" className="home-secondary-action">
+              View past readings
+            </Link>
+          </div>
+
+          <div className="home-trust-note">
+            <span aria-hidden="true" />
+            The backend draws and stores every card before interpretation.
+          </div>
+        </div>
+
+        <div className="home-card-scene" aria-label="Decorative tarot cards">
+          <div className="home-orbit home-orbit-one" aria-hidden="true" />
+          <div className="home-orbit home-orbit-two" aria-hidden="true" />
+
+          <div className="home-card home-card-left">
+            <TarotCardBack />
+          </div>
+
+          <div className="home-card home-card-center">
+            <TarotCardBack />
+          </div>
+
+          <div className="home-card home-card-right">
+            <TarotCardBack />
+          </div>
+
+          <BrandMarkIcon className="home-floating-symbol home-symbol-one" />
+          <BrandMarkIcon className="home-floating-symbol home-symbol-two" />
+        </div>
+      </section>
+
+      <section className="home-process" aria-labelledby="how-it-works-title">
+        <div className="home-section-heading">
+          <p className="home-eyebrow">A thoughtful ritual</p>
+          <h2 id="how-it-works-title">How your reading unfolds</h2>
+          <p>
+            The experience is simple, while the application keeps the card
+            selection and saved result consistent and secure.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="home-process-grid">
+          <article className="home-process-card">
+            <span className="home-step-number">01</span>
+            <SpreadsIcon />
+            <h3>Choose a spread</h3>
+            <p>
+              Explore one-card, three-card, five-card, relationship, and Celtic
+              Cross structures.
+            </p>
+          </article>
+
+          <article className="home-process-card">
+            <span className="home-step-number">02</span>
+            <NewReadingIcon />
+            <h3>Share your question</h3>
+            <p>
+              Add an optional question or personal context to guide the focus
+              of the reading.
+            </p>
+          </article>
+
+          <article className="home-process-card">
+            <span className="home-step-number">03</span>
+            <ReadingsIcon />
+            <h3>Return to your insight</h3>
+            <p>
+              Every created reading is stored so it can be opened and reflected
+              upon again later.
+            </p>
+          </article>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="home-callout">
+        <div>
+          <p className="home-eyebrow">Begin when you are ready</p>
+          <h2>Let the right spread frame your question.</h2>
+        </div>
+
+        <Link href="/spreads" className="home-primary-action">
+          Browse predefined spreads
+        </Link>
+      </section>
+
+      <footer className="home-footer">
+        <Link href="/" className="home-brand">
+          <BrandMarkIcon />
+          <span>Arcana AI</span>
+        </Link>
+
+        <p>Trust the cards. Find clarity within.</p>
+      </footer>
+    </main>
   );
 }
