@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -27,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Tarot.Application\Tarot.Application.csproj" />
     <ProjectReference Include="..\Tarot.Infrastructure\Tarot.Infrastructure.csproj" />
+    <ProjectReference Include="..\Tarot.Api\Tarot.Api.csproj" />
   </ItemGroup>
 
 </Project>
