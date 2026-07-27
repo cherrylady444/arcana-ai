@@ -1,6 +1,28 @@
+from collections.abc import Iterator
+
+import pytest
 from fastapi.testclient import TestClient
 
+from app.dependencies import get_interpretation_service
 from app.main import app
+from app.providers.fake import FakeInterpretationProvider
+from app.services.interpretation_service import InterpretationService
+
+
+@pytest.fixture
+def client() -> Iterator[TestClient]:
+    def override_interpretation_service() -> InterpretationService:
+        return InterpretationService(FakeInterpretationProvider())
+
+    app.dependency_overrides[get_interpretation_service] = override_interpretation_service
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.pop(
+        get_interpretation_service,
+        None,
+    )
 
 
 def create_valid_payload() -> dict:
@@ -36,18 +58,19 @@ def create_valid_payload() -> dict:
                 "arcana": "Major Arcana",
                 "suit": None,
                 "orientation": "Reversed",
-                "meaning": "Resistance, lack of direction, competing forces.",
+                "meaning": ("Resistance, lack of direction, competing forces."),
             },
         ],
     }
 
 
-def test_create_interpretation_returns_structured_response() -> None:
-    with TestClient(app) as client:
-        response = client.post(
-            "/interpretations",
-            json=create_valid_payload(),
-        )
+def test_create_interpretation_returns_structured_response(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/interpretations",
+        json=create_valid_payload(),
+    )
 
     assert response.status_code == 200
 
@@ -58,22 +81,24 @@ def test_create_interpretation_returns_structured_response() -> None:
     assert [item["positionOrder"] for item in body["positionInterpretations"]] == [1, 2]
 
     assert "synthesis" in body
-    assert len(body["reflectionQuestions"]) == 1
+    assert 2 <= len(body["reflectionQuestions"]) <= 4
 
     for item in body["positionInterpretations"]:
-        assert "cardName" not in item
-        assert "orientation" not in item
-        assert "cardId" not in item
+        assert set(item) == {
+            "positionOrder",
+            "interpretation",
+        }
 
 
-def test_create_interpretation_rejects_invalid_request() -> None:
+def test_create_interpretation_rejects_invalid_request(
+    client: TestClient,
+) -> None:
     payload = create_valid_payload()
     payload["placements"][0]["orientation"] = "Sideways"
 
-    with TestClient(app) as client:
-        response = client.post(
-            "/interpretations",
-            json=payload,
-        )
+    response = client.post(
+        "/interpretations",
+        json=payload,
+    )
 
     assert response.status_code == 422

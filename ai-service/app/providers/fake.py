@@ -35,6 +35,7 @@ class FakeInterpretationProvider:
                 "pipeline before a real language model is connected."
             ),
             reflection_questions=[
-                "Which part of this reading feels most relevant to your situation?"
+                "Which part of this reading feels most relevant to your situation?",
+                "What aspect of the reading would be most useful to reflect on further?",
             ],
         )

@@ -7,6 +7,10 @@ from app.models.interpretations import (
     InterpretationRequest,
     InterpretationResponse,
 )
+from app.providers.base import (
+    InterpretationProviderResponseError,
+    InterpretationProviderUnavailableError,
+)
 from app.services.interpretation_service import (
     InterpretationService,
     InvalidProviderResponseError,
@@ -32,8 +36,18 @@ async def create_interpretation(
 ) -> InterpretationResponse:
     try:
         return await service.create_interpretation(request)
-    except InvalidProviderResponseError as exception:
+
+    except (
+        InvalidProviderResponseError,
+        InterpretationProviderResponseError,
+    ) as exception:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Interpretation provider returned an invalid response.",
+            detail="AI interpretation provider returned an invalid response.",
+        ) from exception
+
+    except InterpretationProviderUnavailableError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI interpretation is temporarily unavailable.",
         ) from exception

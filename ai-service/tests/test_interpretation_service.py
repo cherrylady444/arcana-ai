@@ -78,7 +78,10 @@ def test_service_rejects_provider_output_for_unknown_position() -> None:
                     )
                 ],
                 synthesis="Invalid synthesis.",
-                reflection_questions=["Invalid question?"],
+                reflection_questions=[
+                    "Which part of this invalid response should be examined?",
+                    "What does this invalid response demonstrate?",
+                ],
             )
 
     service = InterpretationService(InvalidProvider())

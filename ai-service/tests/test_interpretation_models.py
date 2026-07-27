@@ -3,7 +3,11 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 
-from app.models.interpretations import InterpretationRequest
+from app.models.interpretations import (
+    InterpretationRequest,
+    InterpretationResponse,
+    PositionInterpretation,
+)
 
 READING_ID = "11111111-1111-1111-1111-111111111111"
 FIRST_CARD_ID = "22222222-2222-2222-2222-222222222222"
@@ -76,3 +80,40 @@ def test_interpretation_request_rejects_invalid_orientation() -> None:
 
     with pytest.raises(ValidationError):
         InterpretationRequest.model_validate(payload)
+
+
+def test_interpretation_response_rejects_unfinished_reflection_question() -> None:
+    with pytest.raises(ValidationError):
+        InterpretationResponse(
+            overall_theme="A reflective overall theme.",
+            position_interpretations=[
+                PositionInterpretation(
+                    position_order=1,
+                    interpretation="A complete position interpretation.",
+                )
+            ],
+            synthesis="A complete synthesis of the reading.",
+            reflection_questions=[
+                "What part of this situation needs more reflection?",
+                "What might become clearer if I slow down",
+            ],
+        )
+
+
+def test_interpretation_response_accepts_complete_reflection_questions() -> None:
+    response = InterpretationResponse(
+        overall_theme="A reflective overall theme.",
+        position_interpretations=[
+            PositionInterpretation(
+                position_order=1,
+                interpretation="A complete position interpretation.",
+            )
+        ],
+        synthesis="A complete synthesis of the reading.",
+        reflection_questions=[
+            "What part of this situation needs more reflection?",
+            "What might become clearer if I slow down?",
+        ],
+    )
+
+    assert len(response.reflection_questions) == 2

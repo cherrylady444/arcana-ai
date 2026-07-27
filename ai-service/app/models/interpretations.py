@@ -15,6 +15,15 @@ NonEmptyString = Annotated[
     StringConstraints(strip_whitespace=True, min_length=1),
 ]
 
+ReflectionQuestion = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=10,
+        pattern=r".*\?$",
+    ),
+]
+
 
 class ApiModel(BaseModel):
     """Base model for JSON exchanged between ASP.NET Core and this service."""
@@ -84,7 +93,7 @@ class InterpretationResponse(ApiModel):
     overall_theme: NonEmptyString
     position_interpretations: list[PositionInterpretation] = Field(min_length=1)
     synthesis: NonEmptyString
-    reflection_questions: list[NonEmptyString] = Field(
-        min_length=1,
-        max_length=5,
+    reflection_questions: list[ReflectionQuestion] = Field(
+        min_length=2,
+        max_length=4,
     )
