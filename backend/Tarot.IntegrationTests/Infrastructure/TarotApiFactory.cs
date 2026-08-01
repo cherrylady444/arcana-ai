@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Tarot.Infrastructure.Persistence;
+using Tarot.Application.Interpretations;
 
 namespace Tarot.IntegrationTests.Infrastructure;
 
@@ -22,6 +23,8 @@ public sealed class TarotApiFactory : WebApplicationFactory<Program>
     {
         _connectionString = connectionString;
     }
+
+    public FakeReadingInterpreter ReadingInterpreter { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -59,6 +62,13 @@ public sealed class TarotApiFactory : WebApplicationFactory<Program>
             {
                 options.UseNpgsql(_connectionString);
             });
+            // This means:
+            // production API → PythonReadingInterpreterClient
+            // API integration tests → FakeReadingInterpreter
+            services.RemoveAll<IReadingInterpreter>();
+
+            services.AddSingleton<IReadingInterpreter>(
+                ReadingInterpreter);
         });
     }
 }

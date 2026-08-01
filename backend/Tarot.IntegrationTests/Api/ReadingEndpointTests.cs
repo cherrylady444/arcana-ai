@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Tarot.Api.Contracts;
 using Tarot.Application.Readings;
 using Tarot.IntegrationTests.Infrastructure;
+using Tarot.Application.Interpretations;
 
 namespace Tarot.IntegrationTests.Api;
 
@@ -247,6 +248,76 @@ public sealed class ReadingEndpointTests :
         Assert.Contains(
             "Page must be at least 1.",
             error.Error);
+    }
+
+    [Fact]
+    public async Task GenerateInterpretation_LoadsPersistedReadingSnapshot()
+    {
+        const string userContext =
+            "Should I change direction in my career?";
+
+        var created = await CreateReadingAsync(
+            spreadKey: "one-card",
+            userContext: userContext);
+
+        var response = await _client.PostAsync(
+            $"/api/readings/{created.Id}/interpretations",
+            content: null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var interpretation = await response.Content
+            .ReadFromJsonAsync<ReadingInterpretationResponse>();
+
+        Assert.NotNull(interpretation);
+        Assert.False(string.IsNullOrWhiteSpace(
+            interpretation.OverallTheme));
+        Assert.Single(interpretation.PositionInterpretations);
+        Assert.Equal(2, interpretation.ReflectionQuestions.Count);
+
+        Assert.Equal(1, _factory.ReadingInterpreter.CallCount);
+
+        var input = Assert.IsType<ReadingInterpretationInput>(
+            _factory.ReadingInterpreter.LastInput);
+
+        Assert.Equal(created.Id, input.ReadingId);
+        Assert.Equal(created.UserContext, input.UserContext);
+        Assert.Equal(created.SpreadKey, input.Spread.Key);
+        Assert.Equal(created.SpreadName, input.Spread.Name);
+
+        var createdCard = Assert.Single(created.Cards);
+        var placement = Assert.Single(input.Placements);
+
+        Assert.Equal(createdCard.PositionOrder, placement.PositionOrder);
+        Assert.Equal(createdCard.PositionKey, placement.PositionKey);
+        Assert.Equal(createdCard.PositionTitle, placement.PositionTitle);
+        Assert.Equal(createdCard.PositionPrompt, placement.PositionPrompt);
+        Assert.Equal(
+            createdCard.PositionDescription,
+            placement.PositionDescription);
+        Assert.Equal(createdCard.CardId, placement.CardId);
+        Assert.Equal(createdCard.CardName, placement.CardName);
+        Assert.Equal(createdCard.Orientation, placement.Orientation);
+        Assert.Equal(createdCard.Meaning, placement.Meaning);
+    }
+
+    [Fact]
+    public async Task GenerateInterpretation_WhenReadingDoesNotExist_ReturnsNotFound()
+    {
+        var readingId = Guid.NewGuid();
+
+        var response = await _client.PostAsync(
+            $"/api/readings/{readingId}/interpretations",
+            content: null);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, _factory.ReadingInterpreter.CallCount);
+
+        var error = await response.Content
+            .ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.NotNull(error);
+        Assert.Contains(readingId.ToString(), error.Error);
     }
 
 

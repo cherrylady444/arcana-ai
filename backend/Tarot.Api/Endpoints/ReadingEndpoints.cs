@@ -1,4 +1,5 @@
 using Tarot.Api.Contracts;
+using Tarot.Application.Interpretations;
 using Tarot.Application.Readings;
 using Tarot.Domain;
 
@@ -26,6 +27,11 @@ public static class ReadingEndpoints
 
         // GET /api/readings/{id}
         group.MapGet("/{id:guid}", GetReadingById);
+
+        // POST /api/readings/{id}/interpretations
+        group.MapPost(
+            "/{id:guid}/interpretations",
+            GenerateReadingInterpretation);
 
         return endpoints;
     }
@@ -120,6 +126,82 @@ public static class ReadingEndpoints
             CreatedAtUtc: reading.CreatedAtUtc);
 
         return Results.Ok(response);
+    }
+
+    /// <summary>
+    /// Generates an AI interpretation for an existing persisted reading.
+    ///
+    /// The browser supplies only the reading ID. The Application layer loads
+    /// all authoritative cards, positions, orientations, and meanings from
+    /// PostgreSQL before calling the AI service.
+    /// </summary>
+    private static async Task<IResult> GenerateReadingInterpretation(
+        Guid id,
+        IGenerateReadingInterpretationService interpretationService,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken)
+    {
+        var logger = loggerFactory.CreateLogger(
+            "Tarot.Api.ReadingInterpretations");
+
+        try
+        {
+            var interpretation = await interpretationService.GenerateAsync(
+                id,
+                cancellationToken);
+
+            if (interpretation is null)
+            {
+                return Results.NotFound(new
+                {
+                    error = $"Reading '{id}' was not found."
+                });
+            }
+
+            var response = new ReadingInterpretationResponse(
+                OverallTheme: interpretation.OverallTheme,
+                PositionInterpretations: interpretation
+                    .PositionInterpretations
+                    .Select(item => new PositionInterpretationResponse(
+                        PositionOrder: item.PositionOrder,
+                        Interpretation: item.Interpretation))
+                    .ToArray(),
+                Synthesis: interpretation.Synthesis,
+                ReflectionQuestions:
+                    interpretation.ReflectionQuestions);
+
+            return Results.Ok(response);
+        }
+        catch (ReadingInterpreterUnavailableException exception)
+        {
+            logger.LogWarning(
+                exception,
+                "AI interpretation is unavailable for reading {ReadingId}.",
+                id);
+
+            return Results.Json(
+                new
+                {
+                    error = "AI interpretation is temporarily unavailable."
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (ReadingInterpreterResponseException exception)
+        {
+            logger.LogError(
+                exception,
+                "AI interpretation returned an invalid response for reading "
+                    + "{ReadingId}.",
+                id);
+
+            return Results.Json(
+                new
+                {
+                    error =
+                        "AI interpretation provider returned an invalid response."
+                },
+                statusCode: StatusCodes.Status502BadGateway);
+        }
     }
 
     /// <summary>

@@ -4,10 +4,12 @@ using Tarot.Api.Endpoints;
 using Tarot.Application.Cards;
 using Tarot.Application.Readings;
 using Tarot.Application.Spreads;
+using Tarot.Application.Interpretations;
 
 using Microsoft.EntityFrameworkCore;
 using Tarot.Infrastructure.Persistence;
 using Tarot.Infrastructure.Persistence.Repositories;
+using Tarot.Infrastructure.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,12 +55,61 @@ builder.Services.AddDbContext<TarotDbContext>(options =>
     });
 });
 
+// AI related configurations
+var aiServiceBaseUrl = builder.Configuration["AiService:BaseUrl"]
+    ?? throw new InvalidOperationException(
+        "Configuration value 'AiService:BaseUrl' is missing.");
+
+var normalizedAiServiceBaseUrl = aiServiceBaseUrl.EndsWith('/')
+    ? aiServiceBaseUrl
+    : $"{aiServiceBaseUrl}/";
+
+if (!Uri.TryCreate(
+        normalizedAiServiceBaseUrl,
+        UriKind.Absolute,
+        out var aiServiceBaseUri))
+{
+    throw new InvalidOperationException(
+        "Configuration value 'AiService:BaseUrl' must be an absolute URL.");
+}
+
+if (aiServiceBaseUri.Scheme != Uri.UriSchemeHttp
+    && aiServiceBaseUri.Scheme != Uri.UriSchemeHttps)
+{
+    throw new InvalidOperationException(
+        "Configuration value 'AiService:BaseUrl' must use HTTP or HTTPS.");
+}
+
+var aiServiceTimeoutSeconds =
+    builder.Configuration.GetValue<int?>(
+        "AiService:TimeoutSeconds")
+    ?? 160;
+
+if (aiServiceTimeoutSeconds <= 0)
+{
+    throw new InvalidOperationException(
+        "Configuration value 'AiService:TimeoutSeconds' must be positive.");
+}
+//
+
 builder.Services.AddScoped<ICardDrawingService, CardDrawingService>();
 builder.Services.AddScoped<IReadingService, CreateReadingService>();
 builder.Services.AddScoped<IGetReadingByIdService, GetReadingByIdService>();
 builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
 builder.Services.AddScoped<IListReadingsService, ListReadingsService>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
+
+// AI related services: 
+builder.Services.AddScoped<IGenerateReadingInterpretationService,
+    GenerateReadingInterpretationService>();
+
+builder.Services.AddHttpClient<IReadingInterpreter,
+    PythonReadingInterpreterClient>(client =>
+{
+    client.BaseAddress = aiServiceBaseUri;
+    client.Timeout = TimeSpan.FromSeconds(
+        aiServiceTimeoutSeconds);
+});
 
 var app = builder.Build();
 
