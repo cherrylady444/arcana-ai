@@ -111,6 +111,18 @@ builder.Services.AddHttpClient<IReadingInterpreter,
         aiServiceTimeoutSeconds);
 });
 
+builder.Services.AddScoped<
+    IReadingInterpretationRepository,
+    PostgresReadingInterpretationRepository>();
+
+builder.Services.AddScoped<
+    IGetReadingInterpretationService,
+    GetReadingInterpretationService>();
+
+builder.Services.AddScoped<
+    IListReadingInterpretationsService,
+    ListReadingInterpretationsService>();
+
 var app = builder.Build();
 
 // This is enabled by Docker Compose for the current single-instance
@@ -139,7 +151,6 @@ app.MapHealthChecks("/health");
 
 app.MapSpreadEndpoints();
 app.MapReadingEndpoints();
-
 
 // app.MapGet("/api/spreads", GetSpreadSummaries);
 

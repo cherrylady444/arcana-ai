@@ -12,4 +12,7 @@ public sealed class ReadingEntity
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public List<ReadingCardEntity> Cards { get; set; } = new();
+
+    public List<ReadingInterpretationEntity> Interpretations { get; set; }
+        = new();
 }

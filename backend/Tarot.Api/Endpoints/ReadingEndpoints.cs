@@ -5,43 +5,34 @@ using Tarot.Domain;
 
 namespace Tarot.Api.Endpoints;
 
-/// <summary>
-/// Contains all Minimal API endpoints related to tarot readings.
-/// </summary>
 public static class ReadingEndpoints
 {
-    /// <summary>
-    /// Registers the reading endpoints under the common
-    /// /api/readings route prefix.
-    /// </summary>
     public static IEndpointRouteBuilder MapReadingEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/readings");
 
-        // POST /api/readings
         group.MapPost("", CreateReading);
 
-        // GET /api/readings?page=1&pageSize=20
         group.MapGet("", ListReadings);
 
-        // GET /api/readings/{id}
         group.MapGet("/{id:guid}", GetReadingById);
 
-        // POST /api/readings/{id}/interpretations
         group.MapPost(
             "/{id:guid}/interpretations",
             GenerateReadingInterpretation);
 
+        group.MapGet(
+            "/{id:guid}/interpretations",
+            ListReadingInterpretations);
+
+        group.MapGet(
+            "/{id:guid}/interpretations/{interpretationId:guid}",
+            GetReadingInterpretationById);
+
         return endpoints;
     }
 
-    /// <summary>
-    /// Creates a new tarot reading.
-    ///
-    /// ASP.NET Core reads CreateReadingRequest from the JSON request body and
-    /// obtains IReadingService from dependency injection.
-    /// </summary>
     private static async Task<IResult> CreateReading(
         CreateReadingRequest request,
         IReadingService readingService,
@@ -49,22 +40,12 @@ public static class ReadingEndpoints
     {
         try
         {
-            /*
-             * Convert the HTTP request model into an Application-layer command.
-             *
-             * The endpoint does not draw cards itself. That responsibility
-             * remains inside CreateReadingService.
-             */
             var result = await readingService.CreateReadingAsync(
                 new CreateReadingCommand(
                     SpreadKey: request.SpreadKey,
                     UserContext: request.UserContext),
                 cancellationToken);
 
-            /*
-             * Convert the Application result into the response shape exposed
-             * publicly by the API.
-             */
             var response = new ReadingResponse(
                 Id: result.Id,
                 UserContext: result.UserContext,
@@ -79,10 +60,6 @@ public static class ReadingEndpoints
         }
         catch (ArgumentException exception)
         {
-            /*
-             * CreateReadingService throws ArgumentException for invalid input,
-             * such as an unknown spread key.
-             */
             return Results.BadRequest(new
             {
                 error = exception.Message
@@ -90,9 +67,6 @@ public static class ReadingEndpoints
         }
     }
 
-    /// <summary>
-    /// Retrieves one previously saved reading by its unique identifier.
-    /// </summary>
     private static async Task<IResult> GetReadingById(
         Guid id,
         IGetReadingByIdService getReadingByIdService,
@@ -110,11 +84,6 @@ public static class ReadingEndpoints
             });
         }
 
-        /*
-         * A reading loaded from PostgreSQL contains ReadingCardDetails objects,
-         * which differ slightly from the ReadingCard objects produced while
-         * creating a new reading.
-         */
         var response = new ReadingResponse(
             Id: reading.Id,
             UserContext: reading.UserContext,
@@ -128,12 +97,37 @@ public static class ReadingEndpoints
         return Results.Ok(response);
     }
 
+    private static async Task<IResult> ListReadings(
+        int? page,
+        int? pageSize,
+        IListReadingsService listReadingsService,
+        CancellationToken cancellationToken)
+    {
+        var requestedPage = page ?? 1;
+        var requestedPageSize = pageSize ?? 20;
+
+        try
+        {
+            var result = await listReadingsService.GetPageAsync(
+                requestedPage,
+                requestedPageSize,
+                cancellationToken);
+
+            return Results.Ok(result);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            return Results.BadRequest(new
+            {
+                error = exception.Message
+            });
+        }
+    }
+
     /// <summary>
-    /// Generates an AI interpretation for an existing persisted reading.
+    /// Generates and persists a new interpretation version.
     ///
-    /// The browser supplies only the reading ID. The Application layer loads
-    /// all authoritative cards, positions, orientations, and meanings from
-    /// PostgreSQL before calling the AI service.
+    /// The caller supplies only the reading ID.
     /// </summary>
     private static async Task<IResult> GenerateReadingInterpretation(
         Guid id,
@@ -158,19 +152,13 @@ public static class ReadingEndpoints
                 });
             }
 
-            var response = new ReadingInterpretationResponse(
-                OverallTheme: interpretation.OverallTheme,
-                PositionInterpretations: interpretation
-                    .PositionInterpretations
-                    .Select(item => new PositionInterpretationResponse(
-                        PositionOrder: item.PositionOrder,
-                        Interpretation: item.Interpretation))
-                    .ToArray(),
-                Synthesis: interpretation.Synthesis,
-                ReflectionQuestions:
-                    interpretation.ReflectionQuestions);
+            var response = ToReadingInterpretationResponse(
+                interpretation);
 
-            return Results.Ok(response);
+            var location =
+                $"/api/readings/{id}/interpretations/{interpretation.Id}";
+
+            return Results.Created(location, response);
         }
         catch (ReadingInterpreterUnavailableException exception)
         {
@@ -182,16 +170,18 @@ public static class ReadingEndpoints
             return Results.Json(
                 new
                 {
-                    error = "AI interpretation is temporarily unavailable."
+                    error =
+                        "AI interpretation is temporarily unavailable."
                 },
-                statusCode: StatusCodes.Status503ServiceUnavailable);
+                statusCode:
+                    StatusCodes.Status503ServiceUnavailable);
         }
         catch (ReadingInterpreterResponseException exception)
         {
             logger.LogError(
                 exception,
-                "AI interpretation returned an invalid response for reading "
-                    + "{ReadingId}.",
+                "AI interpretation returned an invalid response for " +
+                "reading {ReadingId}.",
                 id);
 
             return Results.Json(
@@ -200,61 +190,82 @@ public static class ReadingEndpoints
                     error =
                         "AI interpretation provider returned an invalid response."
                 },
-                statusCode: StatusCodes.Status502BadGateway);
+                statusCode:
+                    StatusCodes.Status502BadGateway);
         }
     }
 
-    /// <summary>
-    /// Retrieves a paginated list of saved readings.
-    ///
-    /// When page or pageSize is not supplied, the endpoint uses the default
-    /// values page = 1 and pageSize = 20.
-    /// </summary>
-    private static async Task<IResult> ListReadings(
-        int? page,
-        int? pageSize,
-        IListReadingsService listReadingsService,
+    private static async Task<IResult> GetReadingInterpretationById(
+        Guid id,
+        Guid interpretationId,
+        IGetReadingInterpretationService interpretationService,
         CancellationToken cancellationToken)
     {
-        var requestedPage = page ?? 1;
-        var requestedPageSize = pageSize ?? 20;
+        var interpretation = await interpretationService.GetByIdAsync(
+            id,
+            interpretationId,
+            cancellationToken);
 
-        try
+        if (interpretation is null)
         {
-            var result = await listReadingsService.GetPageAsync(
-                requestedPage,
-                requestedPageSize,
-                cancellationToken);
-
-            /*
-             * For now, the paginated Application result is returned directly.
-             *
-             * You can introduce a separate API pagination contract later if
-             * the frontend needs a different response shape.
-             */
-            return Results.Ok(result);
-        }
-        catch (ArgumentOutOfRangeException exception)
-        {
-            /*
-             * ListReadingsService validates the page and page-size limits.
-             */
-            return Results.BadRequest(new
+            return Results.NotFound(new
             {
-                error = exception.Message
+                error =
+                    $"Interpretation '{interpretationId}' was not found " +
+                    $"for reading '{id}'."
             });
         }
+
+        return Results.Ok(
+            ToReadingInterpretationResponse(interpretation));
     }
 
-    /// <summary>
-    /// Converts a newly drawn card into the API response model.
-    ///
-    /// ReadingCard contains complete Domain objects:
-    /// - Position
-    /// - Card
-    /// - Orientation
-    /// - selected Meaning
-    /// </summary>
+    private static async Task<IResult> ListReadingInterpretations(
+        Guid id,
+        IListReadingInterpretationsService interpretationService,
+        CancellationToken cancellationToken)
+    {
+        var interpretations =
+            await interpretationService.GetByReadingIdAsync(
+                id,
+                cancellationToken);
+
+        if (interpretations is null)
+        {
+            return Results.NotFound(new
+            {
+                error = $"Reading '{id}' was not found."
+            });
+        }
+
+        var response = interpretations
+            .Select(ToReadingInterpretationResponse)
+            .ToArray();
+
+        return Results.Ok(response);
+    }
+
+    private static ReadingInterpretationResponse
+        ToReadingInterpretationResponse(
+            ReadingInterpretationDetails interpretation)
+    {
+        return new ReadingInterpretationResponse(
+            Id: interpretation.Id,
+            ReadingId: interpretation.ReadingId,
+            OverallTheme: interpretation.OverallTheme,
+            PositionInterpretations: interpretation
+                .PositionInterpretations
+                .OrderBy(item => item.PositionOrder)
+                .Select(item => new PositionInterpretationResponse(
+                    PositionOrder: item.PositionOrder,
+                    Interpretation: item.Interpretation))
+                .ToArray(),
+            Synthesis: interpretation.Synthesis,
+            ReflectionQuestions: interpretation.ReflectionQuestions
+                .ToArray(),
+            CreatedAtUtc: interpretation.CreatedAtUtc);
+    }
+
     private static ReadingCardResponse ToCreatedReadingCardResponse(
         ReadingCard readingCard)
     {
@@ -272,12 +283,6 @@ public static class ReadingEndpoints
             Meaning: readingCard.Meaning);
     }
 
-    /// <summary>
-    /// Converts a card loaded from PostgreSQL into the same API response model.
-    ///
-    /// ReadingCardDetails already contains flattened persisted values, so its
-    /// properties are accessed directly.
-    /// </summary>
     private static ReadingCardResponse ToSavedReadingCardResponse(
         ReadingCardDetails readingCard)
     {

@@ -130,6 +130,94 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.ToTable("readings", (string)null);
                 });
 
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("OverallTheme")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("overall_theme");
+
+                    b.Property<Guid>("ReadingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reading_id");
+
+                    b.Property<string>("Synthesis")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("synthesis");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadingId", "CreatedAtUtc");
+
+                    b.ToTable("reading_interpretations", (string)null);
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationReflectionQuestionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("question");
+
+                    b.Property<int>("QuestionOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("question_order");
+
+                    b.Property<Guid>("ReadingInterpretationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reading_interpretation_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadingInterpretationId", "QuestionOrder")
+                        .IsUnique();
+
+                    b.ToTable("reading_interpretation_reflection_questions", (string)null);
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingPositionInterpretationEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Interpretation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("interpretation");
+
+                    b.Property<int>("PositionOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("position_order");
+
+                    b.Property<Guid>("ReadingInterpretationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reading_interpretation_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadingInterpretationId", "PositionOrder")
+                        .IsUnique();
+
+                    b.ToTable("reading_position_interpretations", (string)null);
+                });
+
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingCardEntity", b =>
                 {
                     b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", "Reading")
@@ -141,9 +229,51 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.Navigation("Reading");
                 });
 
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", b =>
+                {
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", "Reading")
+                        .WithMany("Interpretations")
+                        .HasForeignKey("ReadingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reading");
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationReflectionQuestionEntity", b =>
+                {
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", "ReadingInterpretation")
+                        .WithMany("ReflectionQuestions")
+                        .HasForeignKey("ReadingInterpretationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReadingInterpretation");
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingPositionInterpretationEntity", b =>
+                {
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", "ReadingInterpretation")
+                        .WithMany("PositionInterpretations")
+                        .HasForeignKey("ReadingInterpretationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReadingInterpretation");
+                });
+
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Interpretations");
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", b =>
+                {
+                    b.Navigation("PositionInterpretations");
+
+                    b.Navigation("ReflectionQuestions");
                 });
 #pragma warning restore 612, 618
         }

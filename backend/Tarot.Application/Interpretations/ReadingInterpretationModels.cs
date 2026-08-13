@@ -58,3 +58,17 @@ public sealed record PositionInterpretation(
     int PositionOrder,
     string Interpretation
 );
+
+/// <summary>
+/// A generated interpretation after it has been assigned an ID
+/// and persisted as an immutable application resource.
+/// </summary>
+public sealed record ReadingInterpretationDetails(
+    Guid Id,
+    Guid ReadingId,
+    string OverallTheme,
+    IReadOnlyCollection<PositionInterpretation> PositionInterpretations,
+    string Synthesis,
+    IReadOnlyCollection<string> ReflectionQuestions,
+    DateTimeOffset CreatedAtUtc
+);

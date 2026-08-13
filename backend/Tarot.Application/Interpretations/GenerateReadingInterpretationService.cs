@@ -3,8 +3,8 @@ using Tarot.Application.Readings;
 namespace Tarot.Application.Interpretations;
 
 /// <summary>
-/// Loads a trusted persisted reading and sends its immutable snapshot to the
-/// configured interpretation provider.
+/// Loads a trusted persisted reading,  requests an AI interpretation,
+/// validates the result, and persists it as a new immutable resource.
 /// </summary>
 /// <remarks>
 /// This service is responsible for generating interpretations for persisted readings.
@@ -15,16 +15,20 @@ public sealed class GenerateReadingInterpretationService
 {
     private readonly IReadingRepository _readingRepository;
     private readonly IReadingInterpreter _readingInterpreter;
+    private readonly IReadingInterpretationRepository
+        _interpretationRepository;
 
     public GenerateReadingInterpretationService(
         IReadingRepository readingRepository,
-        IReadingInterpreter readingInterpreter)
+        IReadingInterpreter readingInterpreter,
+        IReadingInterpretationRepository interpretationRepository)
     {
         _readingRepository = readingRepository;
         _readingInterpreter = readingInterpreter;
+        _interpretationRepository = interpretationRepository;
     }
 
-    public async Task<ReadingInterpretation?> GenerateAsync(
+    public async Task<ReadingInterpretationDetails?> GenerateAsync(
         Guid readingId,
         CancellationToken cancellationToken = default)
     {
@@ -38,11 +42,10 @@ public sealed class GenerateReadingInterpretationService
         }
 
         /*
-         * Construct the interpretation input entirely from the trusted
+         * Construct the interpretation input exclusively from the trusted
          * PostgreSQL snapshot.
          *
-         * No card, orientation, meaning, or position data is accepted from
-         * the browser.
+         * The browser supplies only readingId.
          */
         var input = new ReadingInterpretationInput(
             ReadingId: reading.Id,
@@ -66,23 +69,29 @@ public sealed class GenerateReadingInterpretationService
                     Meaning: card.Meaning))
                 .ToArray());
 
-        var interpretation = await _readingInterpreter.InterpretAsync(
+        var generated = await _readingInterpreter.InterpretAsync(
             input,
             cancellationToken);
 
-        /*
-         * Python already validates this rule, but ASP.NET validates it again
-         * before exposing the result publicly.
-         */
-        ValidatePositionReferences(input, interpretation);
+        ValidatePositionReferences(input, generated);
 
-        return new ReadingInterpretation(
-            OverallTheme: interpretation.OverallTheme,
-            PositionInterpretations: interpretation.PositionInterpretations
+        var persisted = new ReadingInterpretationDetails(
+            Id: Guid.NewGuid(),
+            ReadingId: reading.Id,
+            OverallTheme: generated.OverallTheme,
+            PositionInterpretations: generated.PositionInterpretations
                 .OrderBy(item => item.PositionOrder)
                 .ToArray(),
-            Synthesis: interpretation.Synthesis,
-            ReflectionQuestions: interpretation.ReflectionQuestions);
+            Synthesis: generated.Synthesis,
+            ReflectionQuestions: generated.ReflectionQuestions
+                .ToArray(),
+            CreatedAtUtc: DateTimeOffset.UtcNow);
+
+        await _interpretationRepository.SaveAsync(
+            persisted,
+            cancellationToken);
+
+        return persisted;
     }
 
     private static void ValidatePositionReferences(

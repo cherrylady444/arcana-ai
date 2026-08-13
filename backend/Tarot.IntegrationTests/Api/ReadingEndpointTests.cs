@@ -264,12 +264,21 @@ public sealed class ReadingEndpointTests :
             $"/api/readings/{created.Id}/interpretations",
             content: null);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
 
         var interpretation = await response.Content
             .ReadFromJsonAsync<ReadingInterpretationResponse>();
 
         Assert.NotNull(interpretation);
+
+        Assert.Equal(
+            $"/api/readings/{created.Id}/interpretations/{interpretation.Id}",
+            response.Headers.Location!.OriginalString);
+
+        Assert.NotEqual(Guid.Empty, interpretation.Id);
+        Assert.Equal(created.Id, interpretation.ReadingId);
+
         Assert.False(string.IsNullOrWhiteSpace(
             interpretation.OverallTheme));
         Assert.Single(interpretation.PositionInterpretations);

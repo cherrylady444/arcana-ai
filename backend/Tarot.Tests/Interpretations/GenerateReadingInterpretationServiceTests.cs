@@ -21,14 +21,33 @@ public sealed class GenerateReadingInterpretationServiceTests
             InterpretationToReturn = CreateValidInterpretation()
         };
 
+        var interpretationRepository = new FakeReadingInterpretationRepository();
+
         var service = new GenerateReadingInterpretationService(
             repository,
-            interpreter);
+            interpreter,
+            interpretationRepository);
 
         var result = await service.GenerateAsync(reading.Id);
 
         Assert.NotNull(result);
         Assert.Equal(1, interpreter.CallCount);
+
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.Equal(reading.Id, result.ReadingId);
+        Assert.NotEqual(default, result.CreatedAtUtc);
+
+        var savedInterpretation = Assert.Single(
+            interpretationRepository.SavedInterpretations);
+
+        Assert.Equal(result.Id, savedInterpretation.Id);
+        Assert.Equal(reading.Id, savedInterpretation.ReadingId);
+        Assert.Equal(
+            result.OverallTheme,
+            savedInterpretation.OverallTheme);
+        Assert.Equal(
+            result.Synthesis,
+            savedInterpretation.Synthesis);
 
         var input = Assert.IsType<ReadingInterpretationInput>(
             interpreter.LastInput);
@@ -61,15 +80,20 @@ public sealed class GenerateReadingInterpretationServiceTests
     {
         var repository = new FakeReadingRepository();
         var interpreter = new FakeReadingInterpreter();
+        var interpretationRepository =
+            new FakeReadingInterpretationRepository();
 
         var service = new GenerateReadingInterpretationService(
             repository,
-            interpreter);
+            interpreter,
+            interpretationRepository);
 
         var result = await service.GenerateAsync(Guid.NewGuid());
 
         Assert.Null(result);
         Assert.Equal(0, interpreter.CallCount);
+
+        Assert.Empty(interpretationRepository.SavedInterpretations);
     }
 
     [Fact]
@@ -100,12 +124,63 @@ public sealed class GenerateReadingInterpretationServiceTests
                 ])
         };
 
+        var interpretationRepository = new FakeReadingInterpretationRepository();
+
         var service = new GenerateReadingInterpretationService(
             repository,
-            interpreter);
+            interpreter,
+            interpretationRepository);
 
         await Assert.ThrowsAsync<ReadingInterpreterResponseException>(
             () => service.GenerateAsync(reading.Id));
+
+        Assert.Empty(interpretationRepository.SavedInterpretations);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WhenProviderReturnsDuplicatePositions_ThrowsAndDoesNotPersist()
+    {
+        var reading = CreateReadingDetails();
+
+        var readingRepository = new FakeReadingRepository
+        {
+            ReadingToReturn = reading
+        };
+
+        var interpreter = new FakeReadingInterpreter
+        {
+            InterpretationToReturn = new ReadingInterpretation(
+                OverallTheme: "Invalid duplicate positions.",
+                PositionInterpretations:
+                [
+                    new PositionInterpretation(
+                        PositionOrder: 1,
+                        Interpretation: "First interpretation."),
+                    new PositionInterpretation(
+                        PositionOrder: 1,
+                        Interpretation: "Duplicate interpretation.")
+                ],
+                Synthesis: "This response should be rejected.",
+                ReflectionQuestions:
+                [
+                    "What does this invalid result demonstrate?",
+                    "Why should duplicate positions be rejected?"
+                ])
+        };
+
+        var interpretationRepository =
+            new FakeReadingInterpretationRepository();
+
+        var service = new GenerateReadingInterpretationService(
+            readingRepository,
+            interpreter,
+            interpretationRepository);
+
+        await Assert.ThrowsAsync<ReadingInterpreterResponseException>(
+            () => service.GenerateAsync(reading.Id));
+
+        Assert.Empty(
+            interpretationRepository.SavedInterpretations);
     }
 
     private static ReadingDetails CreateReadingDetails()

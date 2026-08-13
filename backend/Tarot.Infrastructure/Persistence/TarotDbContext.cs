@@ -11,7 +11,20 @@ public sealed class TarotDbContext : DbContext
     }
 
     public DbSet<ReadingEntity> Readings => Set<ReadingEntity>();
-    public DbSet<ReadingCardEntity> ReadingCards => Set<ReadingCardEntity>();
+
+    public DbSet<ReadingCardEntity> ReadingCards =>
+        Set<ReadingCardEntity>();
+
+    public DbSet<ReadingInterpretationEntity> ReadingInterpretations =>
+        Set<ReadingInterpretationEntity>();
+
+    public DbSet<ReadingPositionInterpretationEntity>
+        ReadingPositionInterpretations =>
+            Set<ReadingPositionInterpretationEntity>();
+
+    public DbSet<ReadingInterpretationReflectionQuestionEntity>
+        ReadingInterpretationReflectionQuestions =>
+            Set<ReadingInterpretationReflectionQuestionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +55,11 @@ public sealed class TarotDbContext : DbContext
             entity.HasMany(reading => reading.Cards)
                 .WithOne(card => card.Reading)
                 .HasForeignKey(card => card.ReadingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(reading => reading.Interpretations)
+                .WithOne(interpretation => interpretation.Reading)
+                .HasForeignKey(interpretation => interpretation.ReadingId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -110,5 +128,112 @@ public sealed class TarotDbContext : DbContext
                 card.PositionOrder
             });
         });
+
+        modelBuilder.Entity<ReadingInterpretationEntity>(entity =>
+        {
+            entity.ToTable("reading_interpretations");
+
+            entity.Property(interpretation => interpretation.Id)
+                .HasColumnName("id");
+
+            entity.Property(interpretation => interpretation.ReadingId)
+                .HasColumnName("reading_id")
+                .IsRequired();
+
+            entity.Property(interpretation => interpretation.OverallTheme)
+                .HasColumnName("overall_theme")
+                .IsRequired();
+
+            entity.Property(interpretation => interpretation.Synthesis)
+                .HasColumnName("synthesis")
+                .IsRequired();
+
+            entity.Property(interpretation => interpretation.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .IsRequired();
+
+            entity.HasIndex(interpretation => new
+            {
+                interpretation.ReadingId,
+                interpretation.CreatedAtUtc
+            });
+
+            entity.HasMany(
+                    interpretation =>
+                        interpretation.PositionInterpretations)
+                .WithOne(position => position.ReadingInterpretation)
+                .HasForeignKey(
+                    position => position.ReadingInterpretationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(
+                    interpretation =>
+                        interpretation.ReflectionQuestions)
+                .WithOne(question => question.ReadingInterpretation)
+                .HasForeignKey(
+                    question => question.ReadingInterpretationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReadingPositionInterpretationEntity>(
+            entity =>
+            {
+                entity.ToTable(
+                    "reading_position_interpretations");
+
+                entity.Property(position => position.Id)
+                    .HasColumnName("id");
+
+                entity.Property(
+                        position => position.ReadingInterpretationId)
+                    .HasColumnName("reading_interpretation_id")
+                    .IsRequired();
+
+                entity.Property(position => position.PositionOrder)
+                    .HasColumnName("position_order")
+                    .IsRequired();
+
+                entity.Property(position => position.Interpretation)
+                    .HasColumnName("interpretation")
+                    .IsRequired();
+
+                entity.HasIndex(position => new
+                    {
+                        position.ReadingInterpretationId,
+                        position.PositionOrder
+                    })
+                    .IsUnique();
+            });
+
+        modelBuilder.Entity<
+            ReadingInterpretationReflectionQuestionEntity>(
+            entity =>
+            {
+                entity.ToTable(
+                    "reading_interpretation_reflection_questions");
+
+                entity.Property(question => question.Id)
+                    .HasColumnName("id");
+
+                entity.Property(
+                        question => question.ReadingInterpretationId)
+                    .HasColumnName("reading_interpretation_id")
+                    .IsRequired();
+
+                entity.Property(question => question.QuestionOrder)
+                    .HasColumnName("question_order")
+                    .IsRequired();
+
+                entity.Property(question => question.Question)
+                    .HasColumnName("question")
+                    .IsRequired();
+
+                entity.HasIndex(question => new
+                    {
+                        question.ReadingInterpretationId,
+                        question.QuestionOrder
+                    })
+                    .IsUnique();
+            });
     }
 }
