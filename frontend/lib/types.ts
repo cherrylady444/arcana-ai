@@ -71,3 +71,20 @@ export type PagedReadingsResponse = {
   totalCount: number;
   totalPages: number;
 };
+
+/** AI interpretation text associated with one saved spread position. */
+export type PositionInterpretation = {
+  positionOrder: number;
+  interpretation: string;
+};
+
+/** One immutable persisted interpretation generated for a reading. */
+export type ReadingInterpretation = {
+  id: string;
+  readingId: string;
+  overallTheme: string;
+  positionInterpretations: PositionInterpretation[];
+  synthesis: string;
+  reflectionQuestions: string[];
+  createdAtUtc: string;
+};

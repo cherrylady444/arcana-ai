@@ -29,6 +29,7 @@ export function AppShell({ children }: AppShellProps) {
 
   const readingsIsActive =
     pathname === "/readings" ||
+    pathname.startsWith("/interpretations/") ||
     (pathname.startsWith("/readings/") && pathname !== "/readings/new");
 
   const aboutIsActive = pathname === "/about";

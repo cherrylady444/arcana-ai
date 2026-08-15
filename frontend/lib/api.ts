@@ -2,6 +2,7 @@ import type {
   CreateReadingRequest,
   PagedReadingsResponse,
   Reading,
+  ReadingInterpretation,
   SpreadDetail,
   SpreadSummary,
 } from "./types";
@@ -123,4 +124,90 @@ export async function getReadings(
   }
 
   return (await response.json()) as PagedReadingsResponse;
+}
+
+
+/** Generates and persists a new interpretation for an existing reading. */
+export async function generateReadingInterpretation(
+  readingId: string,
+): Promise<ReadingInterpretation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/readings/${encodeURIComponent(readingId)}/interpretations`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    // The backend intentionally exposes safe user-facing messages for the
+    // known AI failure modes. Keep the browser experience Arcana-styled and
+    // avoid surfacing infrastructure details.
+    if (response.status === 404) {
+      throw new Error("This reading could not be found.");
+    }
+
+    if (response.status === 503) {
+      throw new Error(
+        "Arcana is temporarily unavailable. Please try again in a moment.",
+      );
+    }
+
+    if (response.status === 502) {
+      throw new Error(
+        "Arcana could not complete this interpretation. Please try again.",
+      );
+    }
+
+    await readErrorResponse(response);
+    throw new Error(
+      "We couldn't create your interpretation. Please try again.",
+    );
+  }
+
+  return (await response.json()) as ReadingInterpretation;
+}
+
+/** Retrieves all saved interpretations for one reading, newest first. */
+export async function getReadingInterpretations(
+  readingId: string,
+): Promise<ReadingInterpretation[] | null> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/readings/${encodeURIComponent(readingId)}/interpretations`,
+    { cache: "no-store" },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load interpretations. ${await readErrorResponse(response)}`,
+    );
+  }
+
+  return (await response.json()) as ReadingInterpretation[];
+}
+
+/** Retrieves one persisted interpretation as an independent resource. */
+export async function getInterpretationById(
+  interpretationId: string,
+): Promise<ReadingInterpretation | null> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/interpretations/${encodeURIComponent(interpretationId)}`,
+    { cache: "no-store" },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load the interpretation. ${await readErrorResponse(response)}`,
+    );
+  }
+
+  return (await response.json()) as ReadingInterpretation;
 }

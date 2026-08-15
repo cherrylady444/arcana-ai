@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ChangeEvent } from "react";
+import {
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ChangeEvent,
+} from "react";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -16,18 +21,39 @@ type ReadingHistoryProps = {
 
 type SortOrder = "newest" | "oldest";
 
-function formatReadingDate(value: string): { date: string; time: string } {
+const subscribeToHydration = () => () => {};
+
+function useHasHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
+}
+
+function formatReadingDate(
+  value: string,
+  useLocalTime: boolean,
+): {
+  date: string;
+  time: string;
+} {
   const date = new Date(value);
+
+  const timeZone = useLocalTime ? undefined : "UTC";
 
   return {
     date: new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
+      timeZone,
     }).format(date),
+
     time: new Intl.DateTimeFormat("en-US", {
       hour: "numeric",
       minute: "2-digit",
+      timeZone,
     }).format(date),
   };
 }
@@ -37,6 +63,8 @@ function getReadingTitle(reading: ReadingSummary): string {
 }
 
 export function ReadingHistory({ result }: ReadingHistoryProps) {
+  const hasHydrated = useHasHydrated();
+  
   const [query, setQuery] = useState("");
   const [spreadKey, setSpreadKey] = useState("all");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
@@ -122,7 +150,10 @@ export function ReadingHistory({ result }: ReadingHistoryProps) {
       ) : (
         <div className="reading-history-list">
           {visibleReadings.map((reading) => {
-            const formatted = formatReadingDate(reading.createdAtUtc);
+            const formatted = formatReadingDate(
+              reading.createdAtUtc,
+              hasHydrated,
+            );
 
             return (
               <Link key={reading.id} href={`/readings/${reading.id}`} className="reading-history-row">

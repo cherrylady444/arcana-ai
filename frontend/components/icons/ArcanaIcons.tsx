@@ -182,6 +182,40 @@ export function JourneyIcon(props: IconProps) {
   );
 }
 
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
+      <rect x="6" y="8" width="20" height="18" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10 5v6M22 5v6M6 13h20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M11 17h3M18 17h3M11 21h3M18 21h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SpreadIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
+      <path d="m16 5 7 11-7 11L9 16 16 5Z" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="2.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function InterpretationSpaceIllustration(props: IconProps) {
+  return (
+    <svg viewBox="0 0 280 190" fill="none" aria-hidden="true" {...props}>
+      <g stroke="currentColor" opacity=".7">
+        <path d="M140 34v54M113 61h54M121 42l38 38M159 42l-38 38" strokeWidth="1.2" />
+        <path d="m140 47 5 14 14 5-14 5-5 14-5-14-14-5 14-5 5-14Z" fill="currentColor" fillOpacity=".13" strokeWidth="1.2" />
+        <path d="M53 158c25-15 52-17 82-4V99c-29-13-57-11-82 4v55ZM227 158c-25-15-52-17-82-4V99c29-13 57-11 82 4v55Z" strokeWidth="1.6" />
+        <path d="M53 158c31-4 61 0 87 16M227 158c-31-4-61 0-87 16" strokeWidth="1.2" />
+        <path d="M72 113c18-5 34-5 49 1M72 126c18-5 34-5 49 1M208 113c-18-5-34-5-49 1M208 126c-18-5-34-5-49 1" strokeWidth="1" opacity=".65" />
+      </g>
+    </svg>
+  );
+}
+
 export function TarotCardBack(props: IconProps) {
   return (
     <svg viewBox="0 0 62 92" fill="none" aria-hidden="true" {...props}>

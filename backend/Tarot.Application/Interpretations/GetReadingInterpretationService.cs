@@ -12,6 +12,15 @@ public sealed class GetReadingInterpretationService
     }
 
     public Task<ReadingInterpretationDetails?> GetByIdAsync(
+        Guid interpretationId,
+        CancellationToken cancellationToken = default)
+    {
+        return _repository.GetByIdAsync(
+            interpretationId,
+            cancellationToken);
+    }
+
+    public Task<ReadingInterpretationDetails?> GetByIdAsync(
         Guid readingId,
         Guid interpretationId,
         CancellationToken cancellationToken = default)

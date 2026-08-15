@@ -58,6 +58,29 @@ public sealed class PostgresReadingInterpretationRepository
     }
 
     public async Task<ReadingInterpretationDetails?> GetByIdAsync(
+        Guid interpretationId,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _dbContext.ReadingInterpretations
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(
+                interpretation =>
+                    interpretation.PositionInterpretations)
+            .Include(
+                interpretation =>
+                    interpretation.ReflectionQuestions)
+            .SingleOrDefaultAsync(
+                interpretation =>
+                    interpretation.Id == interpretationId,
+                cancellationToken);
+
+        return entity is null
+            ? null
+            : ToDetails(entity);
+    }
+
+    public async Task<ReadingInterpretationDetails?> GetByIdAsync(
         Guid readingId,
         Guid interpretationId,
         CancellationToken cancellationToken = default)

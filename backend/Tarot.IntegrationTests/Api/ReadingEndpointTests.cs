@@ -311,6 +311,62 @@ public sealed class ReadingEndpointTests :
     }
 
     [Fact]
+    public async Task GetInterpretationById_AfterGeneration_ReturnsPersistedInterpretation()
+    {
+        var created = await CreateReadingAsync(
+            spreadKey: "one-card",
+            userContext: "What should I understand right now?");
+
+        var generateResponse = await _client.PostAsync(
+            $"/api/readings/{created.Id}/interpretations",
+            content: null);
+
+        Assert.Equal(HttpStatusCode.Created, generateResponse.StatusCode);
+
+        var generated = await generateResponse.Content
+            .ReadFromJsonAsync<ReadingInterpretationResponse>();
+
+        Assert.NotNull(generated);
+
+        var response = await _client.GetAsync(
+            $"/api/interpretations/{generated.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var retrieved = await response.Content
+            .ReadFromJsonAsync<ReadingInterpretationResponse>();
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(generated.Id, retrieved.Id);
+        Assert.Equal(created.Id, retrieved.ReadingId);
+        Assert.Equal(generated.OverallTheme, retrieved.OverallTheme);
+        Assert.Equal(generated.Synthesis, retrieved.Synthesis);
+        Assert.Equal(
+            generated.PositionInterpretations,
+            retrieved.PositionInterpretations);
+        Assert.Equal(
+            generated.ReflectionQuestions,
+            retrieved.ReflectionQuestions);
+    }
+
+    [Fact]
+    public async Task GetInterpretationById_WhenMissing_ReturnsNotFound()
+    {
+        var interpretationId = Guid.NewGuid();
+
+        var response = await _client.GetAsync(
+            $"/api/interpretations/{interpretationId}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        var error = await response.Content
+            .ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.NotNull(error);
+        Assert.Contains(interpretationId.ToString(), error.Error);
+    }
+
+    [Fact]
     public async Task GenerateInterpretation_WhenReadingDoesNotExist_ReturnsNotFound()
     {
         var readingId = Guid.NewGuid();

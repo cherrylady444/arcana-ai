@@ -152,8 +152,8 @@ public static class ReadingEndpoints
                 });
             }
 
-            var response = ToReadingInterpretationResponse(
-                interpretation);
+            var response = ReadingInterpretationResponseMapper.ToResponse(
+            interpretation);
 
             var location =
                 $"/api/readings/{id}/interpretations/{interpretation.Id}";
@@ -217,7 +217,7 @@ public static class ReadingEndpoints
         }
 
         return Results.Ok(
-            ToReadingInterpretationResponse(interpretation));
+            ReadingInterpretationResponseMapper.ToResponse(interpretation));
     }
 
     private static async Task<IResult> ListReadingInterpretations(
@@ -239,31 +239,10 @@ public static class ReadingEndpoints
         }
 
         var response = interpretations
-            .Select(ToReadingInterpretationResponse)
+            .Select(ReadingInterpretationResponseMapper.ToResponse)
             .ToArray();
 
         return Results.Ok(response);
-    }
-
-    private static ReadingInterpretationResponse
-        ToReadingInterpretationResponse(
-            ReadingInterpretationDetails interpretation)
-    {
-        return new ReadingInterpretationResponse(
-            Id: interpretation.Id,
-            ReadingId: interpretation.ReadingId,
-            OverallTheme: interpretation.OverallTheme,
-            PositionInterpretations: interpretation
-                .PositionInterpretations
-                .OrderBy(item => item.PositionOrder)
-                .Select(item => new PositionInterpretationResponse(
-                    PositionOrder: item.PositionOrder,
-                    Interpretation: item.Interpretation))
-                .ToArray(),
-            Synthesis: interpretation.Synthesis,
-            ReflectionQuestions: interpretation.ReflectionQuestions
-                .ToArray(),
-            CreatedAtUtc: interpretation.CreatedAtUtc);
     }
 
     private static ReadingCardResponse ToCreatedReadingCardResponse(

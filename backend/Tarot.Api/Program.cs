@@ -151,6 +151,7 @@ app.MapHealthChecks("/health");
 
 app.MapSpreadEndpoints();
 app.MapReadingEndpoints();
+app.MapInterpretationEndpoints();
 
 // app.MapGet("/api/spreads", GetSpreadSummaries);
 

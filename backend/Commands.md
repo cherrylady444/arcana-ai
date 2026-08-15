@@ -67,3 +67,16 @@ dotnet test Tarot.IntegrationTests/Tarot.IntegrationTests.csproj
 Then run the entire solution:
 
 dotnet test Tarot.slnx
+
+
+
+------------
+## Migrations
+
+dotnet ef migrations list \
+  --project Tarot.Infrastructure \
+  --startup-project Tarot.Api
+
+dotnet ef database update \
+  --project Tarot.Infrastructure \
+  --startup-project Tarot.Api

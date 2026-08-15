@@ -12,6 +12,10 @@ public interface IReadingInterpretationRepository
         CancellationToken cancellationToken = default);
 
     Task<ReadingInterpretationDetails?> GetByIdAsync(
+        Guid interpretationId,
+        CancellationToken cancellationToken = default);
+
+    Task<ReadingInterpretationDetails?> GetByIdAsync(
         Guid readingId,
         Guid interpretationId,
         CancellationToken cancellationToken = default);

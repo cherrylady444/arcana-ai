@@ -23,6 +23,17 @@ internal sealed class FakeReadingInterpretationRepository
     }
 
     public Task<ReadingInterpretationDetails?> GetByIdAsync(
+        Guid interpretationId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = SavedInterpretations.SingleOrDefault(
+            interpretation =>
+                interpretation.Id == interpretationId);
+
+        return Task.FromResult(result);
+    }
+
+    public Task<ReadingInterpretationDetails?> GetByIdAsync(
         Guid readingId,
         Guid interpretationId,
         CancellationToken cancellationToken = default)
