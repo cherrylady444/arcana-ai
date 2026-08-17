@@ -16,7 +16,9 @@ internal sealed record PythonInterpretationRequest(
 
 internal sealed record PythonInterpretationSpread(
     string Key,
-    string Name
+    string Name,
+    string Description,
+    bool IsCustom
 );
 
 internal sealed record PythonInterpretationPlacement(

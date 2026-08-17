@@ -8,6 +8,8 @@ public sealed class ReadingEntity
 
     public string SpreadKey { get; set; } = string.Empty;
     public string SpreadName { get; set; } = string.Empty;
+    public string SpreadDescription { get; set; } = string.Empty;
+    public bool IsCustomSpread { get; set; }
 
     public DateTimeOffset CreatedAtUtc { get; set; }
 

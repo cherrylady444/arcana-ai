@@ -113,7 +113,7 @@ export default async function ReadingDetailsPage({
               <SpreadIcon />
               <div>
                 <span>Spread</span>
-                <p>{reading.spreadName}</p>
+                <p>{reading.spreadName}{reading.isCustomSpread ? " · Custom" : ""}</p>
               </div>
             </div>
 

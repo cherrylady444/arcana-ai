@@ -115,6 +115,15 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("spread_key");
 
+                    b.Property<bool>("IsCustomSpread")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_custom_spread");
+
+                    b.Property<string>("SpreadDescription")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("spread_description");
+
                     b.Property<string>("SpreadName")
                         .IsRequired()
                         .HasMaxLength(200)

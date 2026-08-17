@@ -31,8 +31,23 @@ public static class SpreadRecommendationEndpoints
                 cancellationToken);
 
             return Results.Ok(new SpreadRecommendationResponse(
-                SpreadKey: recommendation.SpreadKey,
-                Reason: recommendation.Reason));
+                RecommendationType: recommendation.RecommendationType,
+                Reason: recommendation.Reason,
+                Spread: new RecommendedSpreadResponse(
+                    Key: recommendation.Spread.Key,
+                    Name: recommendation.Spread.Name,
+                    Description: recommendation.Spread.Description,
+                    IsCustom: recommendation.Spread.IsCustom,
+                    CardCount: recommendation.Spread.CardCount,
+                    Positions: recommendation.Spread.Positions
+                        .OrderBy(position => position.Order)
+                        .Select(position => new RecommendedSpreadPositionResponse(
+                            position.Order,
+                            position.Key,
+                            position.Title,
+                            position.Prompt,
+                            position.Description))
+                        .ToArray())));
         }
         catch (ArgumentException exception)
         {

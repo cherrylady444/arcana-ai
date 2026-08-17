@@ -1,6 +1,7 @@
 using Tarot.Api.Contracts;
 using Tarot.Application.Interpretations;
 using Tarot.Application.Readings;
+using Tarot.Application.Spreads;
 using Tarot.Domain;
 
 namespace Tarot.Api.Endpoints;
@@ -43,7 +44,19 @@ public static class ReadingEndpoints
             var result = await readingService.CreateReadingAsync(
                 new CreateReadingCommand(
                     SpreadKey: request.SpreadKey,
-                    UserContext: request.UserContext),
+                    UserContext: request.UserContext,
+                    CustomSpread: request.CustomSpread is null
+                        ? null
+                        : new CustomSpreadDefinition(
+                            Name: request.CustomSpread.Name,
+                            Description: request.CustomSpread.Description,
+                            Positions: request.CustomSpread.Positions
+                                .Select(position => new CustomSpreadPositionDefinition(
+                                    position.Order,
+                                    position.Title,
+                                    position.Prompt,
+                                    position.Description))
+                                .ToArray())),
                 cancellationToken);
 
             var response = new ReadingResponse(
@@ -51,6 +64,8 @@ public static class ReadingEndpoints
                 UserContext: result.UserContext,
                 SpreadKey: result.SpreadKey,
                 SpreadName: result.SpreadName,
+                SpreadDescription: result.SpreadDescription,
+                IsCustomSpread: result.IsCustomSpread,
                 Cards: result.Cards
                     .Select(ToCreatedReadingCardResponse)
                     .ToList(),
@@ -89,6 +104,8 @@ public static class ReadingEndpoints
             UserContext: reading.UserContext,
             SpreadKey: reading.SpreadKey,
             SpreadName: reading.SpreadName,
+            SpreadDescription: reading.SpreadDescription,
+            IsCustomSpread: reading.IsCustomSpread,
             Cards: reading.Cards
                 .Select(ToSavedReadingCardResponse)
                 .ToList(),

@@ -71,7 +71,7 @@ export async function getSpreadByKey(
   return (await response.json()) as SpreadDetail;
 }
 
-/** Asks Arcana to recommend one existing predefined spread. */
+/** Asks Arcana to choose an existing spread or design a bounded custom spread. */
 export async function recommendSpread(
   request: SpreadRecommendationRequest,
 ): Promise<SpreadRecommendation> {

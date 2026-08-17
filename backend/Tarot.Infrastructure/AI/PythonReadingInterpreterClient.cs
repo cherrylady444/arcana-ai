@@ -36,7 +36,9 @@ public sealed class PythonReadingInterpreterClient : IReadingInterpreter
             UserContext: input.UserContext,
             Spread: new PythonInterpretationSpread(
                 Key: input.Spread.Key,
-                Name: input.Spread.Name),
+                Name: input.Spread.Name,
+                Description: input.Spread.Description,
+                IsCustom: input.Spread.IsCustom),
             Placements: input.Placements
                 .OrderBy(placement => placement.PositionOrder)
                 .Select(placement => new PythonInterpretationPlacement(

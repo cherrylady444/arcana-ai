@@ -15,8 +15,8 @@ export default function GuidedReadingPage() {
       <header className="reference-page-heading guided-reading-heading">
         <h1>Ask Arcana</h1>
         <p>
-          Tell Arcana what you want to explore. It will choose the best fit
-          from your existing spreads.
+          Tell Arcana what you want to explore. It will choose an existing
+          spread when one fits, or create a focused spread for your situation.
         </p>
       </header>
 

@@ -23,6 +23,21 @@ internal sealed record PythonSpreadRecommendationPosition(
 );
 
 internal sealed record PythonSpreadRecommendationResponse(
+    string? RecommendationType,
+    string? Reason,
     string? SpreadKey,
-    string? Reason
+    PythonGeneratedSpread? CustomSpread
+);
+
+internal sealed record PythonGeneratedSpread(
+    string? Name,
+    string? Description,
+    IReadOnlyCollection<PythonGeneratedSpreadPosition>? Positions
+);
+
+internal sealed record PythonGeneratedSpreadPosition(
+    int Order,
+    string? Title,
+    string? Prompt,
+    string? Description
 );

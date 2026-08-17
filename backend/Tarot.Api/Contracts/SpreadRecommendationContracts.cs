@@ -5,6 +5,24 @@ public sealed record SpreadRecommendationRequest(
 );
 
 public sealed record SpreadRecommendationResponse(
-    string SpreadKey,
-    string Reason
+    string RecommendationType,
+    string Reason,
+    RecommendedSpreadResponse Spread
+);
+
+public sealed record RecommendedSpreadResponse(
+    string? Key,
+    string Name,
+    string Description,
+    bool IsCustom,
+    int CardCount,
+    IReadOnlyCollection<RecommendedSpreadPositionResponse> Positions
+);
+
+public sealed record RecommendedSpreadPositionResponse(
+    int Order,
+    string Key,
+    string Title,
+    string Prompt,
+    string Description
 );

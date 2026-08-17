@@ -64,6 +64,8 @@ def build_interpretation_input(
         "spread": {
             "key": request.spread.key,
             "name": request.spread.name,
+            "description": request.spread.description,
+            "isCustom": request.spread.is_custom,
         },
         "placements": [
             {

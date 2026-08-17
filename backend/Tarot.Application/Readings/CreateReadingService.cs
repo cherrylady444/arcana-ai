@@ -5,14 +5,9 @@ using Tarot.Domain;
 namespace Tarot.Application.Readings;
 
 /// <summary>
-/// Service responsible for creating tarot readings.
+/// Creates readings from trusted built-in spreads or bounded custom spread
+/// definitions. ASP.NET always owns card drawing and persistence.
 /// </summary>
-/// <remarks>
-/// The service chooses the requested spread, draws the required number of cards,
-/// assigns each drawn card to the matching spread position, applies the
-/// orientation-specific meaning, preserves optional user context, and persists
-/// the created reading through the configured repository.
-/// </remarks>
 public sealed class CreateReadingService : IReadingService
 {
     private const string DefaultSpreadKey = "three-card";
@@ -35,17 +30,9 @@ public sealed class CreateReadingService : IReadingService
         CreateReadingCommand command,
         CancellationToken cancellationToken = default)
     {
-        var spreadKey = string.IsNullOrWhiteSpace(command.SpreadKey)
-            ? DefaultSpreadKey
-            : command.SpreadKey.Trim();
+        ArgumentNullException.ThrowIfNull(command);
 
-        var spread = _spreadCatalog.GetByKey(spreadKey);
-
-        if (spread is null)
-        {
-            throw new ArgumentException($"Unknown spread key: {spreadKey}.", nameof(command.SpreadKey));
-        }
-
+        var spread = ResolveSpread(command);
         var drawnCards = _cardDrawingService.DrawCards(spread.CardCount);
 
         var orderedPositions = spread.Positions
@@ -63,8 +50,7 @@ public sealed class CreateReadingService : IReadingService
                     Card: drawnCard.Card,
                     Orientation: drawnCard.Orientation,
                     Position: orderedPositions[index],
-                    Meaning: meaning
-                );
+                    Meaning: meaning);
             })
             .ToList();
 
@@ -77,12 +63,47 @@ public sealed class CreateReadingService : IReadingService
             UserContext: userContext,
             SpreadKey: spread.Key,
             SpreadName: spread.Name,
+            SpreadDescription: spread.Description,
+            IsCustomSpread: !spread.IsBuiltIn,
             Cards: readingCards,
-            CreatedAtUtc: DateTimeOffset.UtcNow
-        );
+            CreatedAtUtc: DateTimeOffset.UtcNow);
 
         await _readingRepository.SaveAsync(result, cancellationToken);
 
         return result;
+    }
+
+    private SpreadDefinition ResolveSpread(CreateReadingCommand command)
+    {
+        if (command.CustomSpread is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(command.SpreadKey))
+            {
+                throw new ArgumentException(
+                    "Provide either spreadKey or customSpread, not both.",
+                    nameof(command));
+            }
+
+            var customKey = $"custom:{Guid.NewGuid():N}";
+
+            return CustomSpreadValidator.ValidateAndCreate(
+                command.CustomSpread,
+                customKey);
+        }
+
+        var spreadKey = string.IsNullOrWhiteSpace(command.SpreadKey)
+            ? DefaultSpreadKey
+            : command.SpreadKey.Trim();
+
+        var spread = _spreadCatalog.GetByKey(spreadKey);
+
+        if (spread is null)
+        {
+            throw new ArgumentException(
+                $"Unknown spread key: {spreadKey}.",
+                nameof(command.SpreadKey));
+        }
+
+        return spread;
     }
 }

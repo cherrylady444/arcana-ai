@@ -38,6 +38,8 @@ class ApiModel(BaseModel):
 class SpreadReference(ApiModel):
     key: NonEmptyString
     name: NonEmptyString
+    description: str = ""
+    is_custom: bool = False
 
 
 class ReadingPlacement(ApiModel):

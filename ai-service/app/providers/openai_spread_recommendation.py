@@ -42,7 +42,7 @@ class OpenAISpreadRecommendationProvider:
                 instructions=SPREAD_RECOMMENDATION_SYSTEM_INSTRUCTIONS,
                 input=build_spread_recommendation_input(request),
                 text_format=SpreadRecommendationResponse,
-                max_output_tokens=min(self._max_output_tokens, 1000),
+                max_output_tokens=min(self._max_output_tokens, 2500),
                 store=False,
             )
         except RateLimitError as exception:

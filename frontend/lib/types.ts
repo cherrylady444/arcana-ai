@@ -7,7 +7,7 @@ export type SpreadSummary = {
   cardCount: number;
 };
 
-/** One ordered position in a predefined spread. */
+/** One ordered position in a spread. */
 export type SpreadPosition = {
   order: number;
   key: string;
@@ -16,31 +16,52 @@ export type SpreadPosition = {
   description: string;
 };
 
-/** Complete spread returned by GET /api/spreads/{spreadKey}. */
+/** Complete predefined spread returned by GET /api/spreads/{spreadKey}. */
 export type SpreadDetail = SpreadSummary & {
   description: string;
   positions: SpreadPosition[];
 };
 
-
-/** Request accepted by POST /api/spread-recommendations. */
 export type SpreadRecommendationRequest = {
   situation: string;
 };
 
-/** AI recommendation of one existing predefined spread. */
+/** Normalized spread returned by the guided setup endpoint. */
+export type RecommendedSpread = {
+  key: string | null;
+  name: string;
+  description: string;
+  isCustom: boolean;
+  cardCount: number;
+  positions: SpreadPosition[];
+};
+
 export type SpreadRecommendation = {
-  spreadKey: string;
+  recommendationType: "existing" | "custom";
   reason: string;
+  spread: RecommendedSpread;
+};
+
+export type CustomSpreadPositionInput = {
+  order: number;
+  title: string;
+  prompt: string;
+  description: string;
+};
+
+export type CustomSpreadInput = {
+  name: string;
+  description: string;
+  positions: CustomSpreadPositionInput[];
 };
 
 /** Request accepted by POST /api/readings. */
 export type CreateReadingRequest = {
-  spreadKey: string;
+  spreadKey?: string | null;
   userContext: string | null;
+  customSpread?: CustomSpreadInput | null;
 };
 
-/** One drawn card and its saved spread position. */
 export type ReadingCard = {
   positionOrder: number;
   positionKey: string;
@@ -55,27 +76,27 @@ export type ReadingCard = {
   meaning: string;
 };
 
-/** Complete reading returned by POST /api/readings and GET /api/readings/{id}. */
 export type Reading = {
   id: string;
   userContext: string | null;
   spreadKey: string;
   spreadName: string;
+  spreadDescription: string;
+  isCustomSpread: boolean;
   cards: ReadingCard[];
   createdAtUtc: string;
 };
 
-/** One reading item returned by GET /api/readings. */
 export type ReadingSummary = {
   id: string;
   userContext: string | null;
   spreadKey: string;
   spreadName: string;
+  isCustomSpread: boolean;
   cardCount: number;
   createdAtUtc: string;
 };
 
-/** Paginated response returned by GET /api/readings. */
 export type PagedReadingsResponse = {
   items: ReadingSummary[];
   page: number;
@@ -84,13 +105,11 @@ export type PagedReadingsResponse = {
   totalPages: number;
 };
 
-/** AI interpretation text associated with one saved spread position. */
 export type PositionInterpretation = {
   positionOrder: number;
   interpretation: string;
 };
 
-/** One immutable persisted interpretation generated for a reading. */
 export type ReadingInterpretation = {
   id: string;
   readingId: string;

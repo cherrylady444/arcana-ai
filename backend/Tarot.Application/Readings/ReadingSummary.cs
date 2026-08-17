@@ -6,5 +6,6 @@ public sealed record ReadingSummary(
     string SpreadKey,
     string SpreadName,
     int CardCount,
-    DateTimeOffset CreatedAtUtc
+    DateTimeOffset CreatedAtUtc,
+    bool IsCustomSpread = false
 );

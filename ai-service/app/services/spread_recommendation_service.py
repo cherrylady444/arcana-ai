@@ -6,7 +6,7 @@ from app.providers.spread_recommendation_base import SpreadRecommendationProvide
 
 
 class InvalidSpreadRecommendationResponseError(RuntimeError):
-    """Raised when the provider selects something outside the candidate list."""
+    """Raised when a provider response violates the supplied catalogue boundary."""
 
 
 class SpreadRecommendationService:
@@ -19,11 +19,12 @@ class SpreadRecommendationService:
     ) -> SpreadRecommendationResponse:
         response = await self._provider.recommend(request)
 
-        allowed_keys = {spread.key for spread in request.spreads}
+        if response.recommendation_type == "existing":
+            allowed_keys = {spread.key for spread in request.spreads}
 
-        if response.spread_key not in allowed_keys:
-            raise InvalidSpreadRecommendationResponseError(
-                "Provider recommended a spread outside the supplied catalogue."
-            )
+            if response.spread_key not in allowed_keys:
+                raise InvalidSpreadRecommendationResponseError(
+                    "Provider recommended a spread outside the supplied catalogue."
+                )
 
         return response

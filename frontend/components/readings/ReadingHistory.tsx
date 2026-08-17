@@ -71,7 +71,13 @@ export function ReadingHistory({ result }: ReadingHistoryProps) {
 
   const spreadOptions = useMemo(() => {
     const unique = new Map<string, string>();
-    result.items.forEach((reading) => unique.set(reading.spreadKey, reading.spreadName));
+    result.items.forEach((reading) => {
+      if (reading.isCustomSpread) {
+        unique.set("__custom__", "Custom spreads");
+      } else {
+        unique.set(reading.spreadKey, reading.spreadName);
+      }
+    });
     return [...unique.entries()];
   }, [result.items]);
 
@@ -84,7 +90,11 @@ export function ReadingHistory({ result }: ReadingHistoryProps) {
         !normalizedQuery ||
         title.includes(normalizedQuery) ||
         reading.spreadName.toLowerCase().includes(normalizedQuery);
-      const matchesSpread = spreadKey === "all" || reading.spreadKey === spreadKey;
+      const matchesSpread =
+        spreadKey === "all" ||
+        (spreadKey === "__custom__"
+          ? reading.isCustomSpread
+          : reading.spreadKey === spreadKey);
       return matchesQuery && matchesSpread;
     });
 

@@ -23,6 +23,8 @@ public sealed class PostgresReadingRepository : IReadingRepository
             UserContext = reading.UserContext,
             SpreadKey = reading.SpreadKey,
             SpreadName = reading.SpreadName,
+            SpreadDescription = reading.SpreadDescription,
+            IsCustomSpread = reading.IsCustomSpread,
             CreatedAtUtc = reading.CreatedAtUtc,
             Cards = reading.Cards
                 .OrderBy(card => card.Position.Order)
@@ -78,6 +80,8 @@ public sealed class PostgresReadingRepository : IReadingRepository
             UserContext: entity.UserContext,
             SpreadKey: entity.SpreadKey,
             SpreadName: entity.SpreadName,
+            SpreadDescription: entity.SpreadDescription,
+            IsCustomSpread: entity.IsCustomSpread,
             Cards: entity.Cards
                 .OrderBy(card => card.PositionOrder)
                 .Select(card => new ReadingCardDetails(
@@ -115,12 +119,13 @@ public sealed class PostgresReadingRepository : IReadingRepository
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(reading => new ReadingSummary(
-                reading.Id,
-                reading.UserContext,
-                reading.SpreadKey,
-                reading.SpreadName,
-                reading.Cards.Count,
-                reading.CreatedAtUtc
+                Id: reading.Id,
+                UserContext: reading.UserContext,
+                SpreadKey: reading.SpreadKey,
+                SpreadName: reading.SpreadName,
+                CardCount: reading.Cards.Count,
+                CreatedAtUtc: reading.CreatedAtUtc,
+                IsCustomSpread: reading.IsCustomSpread
             ))
             .ToListAsync(cancellationToken);
 

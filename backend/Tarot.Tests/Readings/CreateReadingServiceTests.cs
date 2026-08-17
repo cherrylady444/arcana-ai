@@ -174,6 +174,75 @@ public sealed class CreateReadingServiceTests
         Assert.Equal(3, repository.SavedReadings[0].Cards.Count);
     }
 
+
+    [Fact]
+    public async Task CreateReadingAsync_WithCustomSpread_DrawsOneCardPerPosition()
+    {
+        var service = CreateService();
+
+        var customSpread = new CustomSpreadDefinition(
+            Name: "Decision Lens",
+            Description: "A custom spread for a specific decision.",
+            Positions:
+            [
+                new CustomSpreadPositionDefinition(1, "Need", "What need is driving this?", "The underlying need."),
+                new CustomSpreadPositionDefinition(2, "Risk", "What risk am I overlooking?", "A possible blind spot."),
+                new CustomSpreadPositionDefinition(3, "Direction", "What should guide me?", "A useful guiding perspective.")
+            ]);
+
+        var result = await service.CreateReadingAsync(
+            new CreateReadingCommand(
+                UserContext: "Should I make this change?",
+                CustomSpread: customSpread));
+
+        Assert.True(result.IsCustomSpread);
+        Assert.StartsWith("custom:", result.SpreadKey);
+        Assert.Equal("Decision Lens", result.SpreadName);
+        Assert.Equal(customSpread.Description, result.SpreadDescription);
+        Assert.Equal(3, result.Cards.Count);
+        Assert.Equal(
+            new[] { "position-1", "position-2", "position-3" },
+            result.Cards
+                .OrderBy(card => card.Position.Order)
+                .Select(card => card.Position.Key));
+    }
+
+    [Fact]
+    public async Task CreateReadingAsync_WhenCustomSpreadHasMoreThanTenPositions_Throws()
+    {
+        var service = CreateService();
+        var positions = Enumerable.Range(1, 11)
+            .Select(order => new CustomSpreadPositionDefinition(
+                order,
+                $"Position {order}",
+                $"What does position {order} explore?",
+                $"Description {order}."))
+            .ToArray();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateReadingAsync(
+                new CreateReadingCommand(
+                    CustomSpread: new CustomSpreadDefinition(
+                        "Too Large",
+                        "This spread should be rejected.",
+                        positions))));
+    }
+
+    [Fact]
+    public async Task CreateReadingAsync_WhenBothExistingAndCustomSpreadAreProvided_Throws()
+    {
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateReadingAsync(
+                new CreateReadingCommand(
+                    SpreadKey: "three-card",
+                    CustomSpread: new CustomSpreadDefinition(
+                        "Custom",
+                        "Custom description.",
+                        [new CustomSpreadPositionDefinition(1, "Focus", "What matters?", "The main focus.")]))));
+    }
+
     private static CreateReadingService CreateService(
         ICardDrawingService? cardDrawingService = null,
         ISpreadCatalog? spreadCatalog = null,

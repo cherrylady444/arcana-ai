@@ -52,7 +52,9 @@ public sealed class GenerateReadingInterpretationService
             UserContext: reading.UserContext,
             Spread: new InterpretationSpread(
                 Key: reading.SpreadKey,
-                Name: reading.SpreadName),
+                Name: reading.SpreadName,
+                Description: reading.SpreadDescription,
+                IsCustom: reading.IsCustomSpread),
             Placements: reading.Cards
                 .OrderBy(card => card.PositionOrder)
                 .Select(card => new InterpretationPlacement(

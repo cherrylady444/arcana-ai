@@ -48,6 +48,14 @@ public sealed class TarotDbContext : DbContext
                 .HasMaxLength(200)
                 .IsRequired();
 
+            entity.Property(reading => reading.SpreadDescription)
+                .HasColumnName("spread_description")
+                .IsRequired();
+
+            entity.Property(reading => reading.IsCustomSpread)
+                .HasColumnName("is_custom_spread")
+                .IsRequired();
+
             entity.Property(reading => reading.CreatedAtUtc)
                 .HasColumnName("created_at_utc")
                 .IsRequired();

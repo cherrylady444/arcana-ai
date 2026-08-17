@@ -6,8 +6,8 @@ using Tarot.Application.SpreadRecommendations;
 namespace Tarot.Infrastructure.AI;
 
 /// <summary>
-/// Calls the internal Python FastAPI service to recommend exactly one of the
-/// predefined spreads supplied by ASP.NET.
+/// Calls the internal Python FastAPI service to either recommend one of the
+/// predefined spreads supplied by ASP.NET or propose a bounded custom spread.
 /// </summary>
 public sealed class PythonSpreadRecommenderClient : ISpreadRecommender
 {
@@ -21,7 +21,7 @@ public sealed class PythonSpreadRecommenderClient : ISpreadRecommender
         _httpClient = httpClient;
     }
 
-    public async Task<SpreadRecommendation> RecommendAsync(
+    public async Task<SpreadRecommendationDecision> RecommendAsync(
         SpreadRecommendationInput input,
         CancellationToken cancellationToken = default)
     {
@@ -106,16 +106,44 @@ public sealed class PythonSpreadRecommenderClient : ISpreadRecommender
             }
 
             if (payload is null
-                || string.IsNullOrWhiteSpace(payload.SpreadKey)
+                || string.IsNullOrWhiteSpace(payload.RecommendationType)
                 || string.IsNullOrWhiteSpace(payload.Reason))
             {
                 throw new SpreadRecommenderResponseException(
                     "The AI service returned an incomplete spread recommendation.");
             }
 
-            return new SpreadRecommendation(
-                SpreadKey: payload.SpreadKey.Trim(),
-                Reason: payload.Reason.Trim());
+            GeneratedSpread? customSpread = null;
+
+            if (payload.CustomSpread is not null)
+            {
+                if (string.IsNullOrWhiteSpace(payload.CustomSpread.Name)
+                    || string.IsNullOrWhiteSpace(payload.CustomSpread.Description)
+                    || payload.CustomSpread.Positions is null)
+                {
+                    throw new SpreadRecommenderResponseException(
+                        "The AI service returned an incomplete custom spread.");
+                }
+
+                customSpread = new GeneratedSpread(
+                    Name: payload.CustomSpread.Name.Trim(),
+                    Description: payload.CustomSpread.Description.Trim(),
+                    Positions: payload.CustomSpread.Positions
+                        .Select(position => new GeneratedSpreadPosition(
+                            Order: position.Order,
+                            Title: position.Title?.Trim() ?? string.Empty,
+                            Prompt: position.Prompt?.Trim() ?? string.Empty,
+                            Description: position.Description?.Trim() ?? string.Empty))
+                        .ToArray());
+            }
+
+            return new SpreadRecommendationDecision(
+                RecommendationType: payload.RecommendationType.Trim(),
+                Reason: payload.Reason.Trim(),
+                SpreadKey: string.IsNullOrWhiteSpace(payload.SpreadKey)
+                    ? null
+                    : payload.SpreadKey.Trim(),
+                CustomSpread: customSpread);
         }
     }
 

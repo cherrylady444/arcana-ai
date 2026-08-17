@@ -201,6 +201,8 @@ public sealed class PostgresReadingRepositoryTests :
         Assert.Equal(reading.UserContext, result.UserContext);
         Assert.Equal(reading.SpreadKey, result.SpreadKey);
         Assert.Equal(reading.SpreadName, result.SpreadName);
+        Assert.Equal(reading.SpreadDescription, result.SpreadDescription);
+        Assert.Equal(reading.IsCustomSpread, result.IsCustomSpread);
         Assert.Equal(reading.CreatedAtUtc, result.CreatedAtUtc);
         Assert.Equal(reading.Cards.Count, result.Cards.Count);
 
@@ -506,6 +508,10 @@ public sealed class PostgresReadingRepositoryTests :
                 ? "One-Card Reading"
                 : "Custom Spread",
             Cards: cards,
-            CreatedAtUtc: createdAtUtc);
+            CreatedAtUtc: createdAtUtc,
+            SpreadDescription: positionOrders.Length == 1
+                ? "A one-card test spread."
+                : "An exact custom spread snapshot used by the integration test.",
+            IsCustomSpread: positionOrders.Length != 1);
     }
 }

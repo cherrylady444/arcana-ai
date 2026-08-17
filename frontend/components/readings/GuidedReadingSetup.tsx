@@ -9,25 +9,16 @@ import {
   SparkleIcon,
   TarotCardBack,
 } from "@/components/icons/ArcanaIcons";
-import {
-  createReading,
-  getSpreadByKey,
-  recommendSpread,
-} from "@/lib/api";
-import type { SpreadDetail } from "@/lib/types";
+import { createReading, recommendSpread } from "@/lib/api";
+import type { SpreadRecommendation } from "@/lib/types";
 
 const MAX_SITUATION_LENGTH = 1000;
-
-type RecommendationView = {
-  spread: SpreadDetail;
-  reason: string;
-};
 
 export function GuidedReadingSetup() {
   const router = useRouter();
   const [situation, setSituation] = useState("");
   const [recommendation, setRecommendation] =
-    useState<RecommendationView | null>(null);
+    useState<SpreadRecommendation | null>(null);
   const [isRecommending, setIsRecommending] = useState(false);
   const [isStartingReading, setIsStartingReading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -47,26 +38,13 @@ export function GuidedReadingSetup() {
     setIsRecommending(true);
 
     try {
-      const result = await recommendSpread({
-        situation: normalizedSituation,
-      });
-      const spread = await getSpreadByKey(result.spreadKey);
-
-      if (!spread) {
-        throw new Error(
-          "The recommended spread is no longer available. Please try again.",
-        );
-      }
-
-      setRecommendation({
-        spread,
-        reason: result.reason,
-      });
+      const result = await recommendSpread({ situation: normalizedSituation });
+      setRecommendation(result);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Arcana could not recommend a spread.",
+          : "Arcana could not prepare a spread.",
       );
     } finally {
       setIsRecommending(false);
@@ -82,8 +60,21 @@ export function GuidedReadingSetup() {
     setIsStartingReading(true);
 
     try {
+      const spread = recommendation.spread;
       const reading = await createReading({
-        spreadKey: recommendation.spread.key,
+        spreadKey: spread.isCustom ? null : spread.key,
+        customSpread: spread.isCustom
+          ? {
+              name: spread.name,
+              description: spread.description,
+              positions: spread.positions.map((position) => ({
+                order: position.order,
+                title: position.title,
+                prompt: position.prompt,
+                description: position.description,
+              })),
+            }
+          : null,
         userContext: situation.trim(),
       });
 
@@ -132,44 +123,64 @@ export function GuidedReadingSetup() {
 
         <div className="guided-situation-meta">
           <span>Be as specific as feels useful.</span>
-          <span>
-            {situation.length} / {MAX_SITUATION_LENGTH}
-          </span>
+          <span>{situation.length} / {MAX_SITUATION_LENGTH}</span>
         </div>
 
         <button
           type="submit"
           className="guided-recommend-button"
-          disabled={
-            isRecommending || isStartingReading || !situation.trim()
-          }
+          disabled={isRecommending || isStartingReading || !situation.trim()}
         >
           <span>
-            {isRecommending ? "Arcana is choosing..." : "Recommend a spread"}
+            {isRecommending ? "Arcana is considering..." : "Ask Arcana"}
           </span>
           <SparkleIcon />
         </button>
       </form>
 
       {errorMessage ? (
-        <p className="guided-error" role="alert">
-          {errorMessage}
-        </p>
+        <p className="guided-error" role="alert">{errorMessage}</p>
       ) : null}
 
       {recommendation ? (
         <section
-          className="guided-recommendation-card"
+          className={`guided-recommendation-card${
+            recommendation.spread.isCustom ? " guided-custom-spread-card" : ""
+          }`}
           aria-labelledby="recommended-spread-title"
         >
           <div className="guided-recommendation-copy">
             <span className="guided-recommendation-eyebrow">
-              Arcana recommends
+              {recommendation.spread.isCustom
+                ? "Arcana created a spread for you"
+                : "Arcana recommends"}
             </span>
+
             <h2 id="recommended-spread-title">
               {recommendation.spread.name}
             </h2>
-            <p>{recommendation.reason}</p>
+            <p className="guided-spread-description">
+              {recommendation.spread.description}
+            </p>
+
+            {recommendation.spread.isCustom ? (
+              <div className="guided-custom-positions">
+                {recommendation.spread.positions.map((position) => (
+                  <article key={position.order} className="guided-custom-position">
+                    <span>{position.order}</span>
+                    <div>
+                      <h3>{position.title}</h3>
+                      <p>{position.description}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="guided-reason-block">
+              <span>Why this spread</span>
+              <p>{recommendation.reason}</p>
+            </div>
 
             <div className="guided-recommendation-meta">
               <span>
@@ -177,6 +188,7 @@ export function GuidedReadingSetup() {
                 {recommendation.spread.cardCount === 1 ? "card" : "cards"}
               </span>
               <span>{recommendation.spread.positions.length} positions</span>
+              {recommendation.spread.isCustom ? <span>Made for this question</span> : null}
             </div>
 
             <div className="guided-recommendation-actions">
@@ -194,15 +206,15 @@ export function GuidedReadingSetup() {
                 <SparkleIcon />
               </button>
 
-              <Link
-                href={`/spreads/${encodeURIComponent(
-                  recommendation.spread.key,
-                )}`}
-                className="guided-spread-details-link"
-              >
-                View spread details
-                <ArrowRightIcon />
-              </Link>
+              {!recommendation.spread.isCustom && recommendation.spread.key ? (
+                <Link
+                  href={`/spreads/${encodeURIComponent(recommendation.spread.key)}`}
+                  className="guided-spread-details-link"
+                >
+                  View spread details
+                  <ArrowRightIcon />
+                </Link>
+              ) : null}
             </div>
           </div>
 

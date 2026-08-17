@@ -18,7 +18,9 @@ public sealed record ReadingInterpretationInput(
 /// </summary>
 public sealed record InterpretationSpread(
     string Key,
-    string Name
+    string Name,
+    string Description,
+    bool IsCustom
 );
 
 /// <summary>
