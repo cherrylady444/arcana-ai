@@ -22,6 +22,18 @@ export type SpreadDetail = SpreadSummary & {
   positions: SpreadPosition[];
 };
 
+
+/** Request accepted by POST /api/spread-recommendations. */
+export type SpreadRecommendationRequest = {
+  situation: string;
+};
+
+/** AI recommendation of one existing predefined spread. */
+export type SpreadRecommendation = {
+  spreadKey: string;
+  reason: string;
+};
+
 /** Request accepted by POST /api/readings. */
 export type CreateReadingRequest = {
   spreadKey: string;

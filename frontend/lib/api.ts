@@ -4,6 +4,8 @@ import type {
   Reading,
   ReadingInterpretation,
   SpreadDetail,
+  SpreadRecommendation,
+  SpreadRecommendationRequest,
   SpreadSummary,
 } from "./types";
 
@@ -67,6 +69,45 @@ export async function getSpreadByKey(
   }
 
   return (await response.json()) as SpreadDetail;
+}
+
+/** Asks Arcana to recommend one existing predefined spread. */
+export async function recommendSpread(
+  request: SpreadRecommendationRequest,
+): Promise<SpreadRecommendation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(`${baseUrl}/api/spread-recommendations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      throw new Error(await readErrorResponse(response));
+    }
+
+    if (response.status === 503) {
+      throw new Error(
+        "Arcana is temporarily unavailable. Please try again in a moment.",
+      );
+    }
+
+    if (response.status === 502) {
+      throw new Error(
+        "Arcana could not choose a spread right now. Please try again.",
+      );
+    }
+
+    await readErrorResponse(response);
+    throw new Error(
+      "We couldn't recommend a spread. Please try again.",
+    );
+  }
+
+  return (await response.json()) as SpreadRecommendation;
 }
 
 /** Creates and persists a reading. */

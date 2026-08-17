@@ -145,7 +145,7 @@ export function ReadingHistory({ result }: ReadingHistoryProps) {
         <div className="history-empty">
           <h2>No readings found</h2>
           <p>Create a new reading or adjust your search filters.</p>
-          <Link href="/spreads">Begin a reading</Link>
+          <Link href="/readings/new">Begin a reading</Link>
         </div>
       ) : (
         <div className="reading-history-list">

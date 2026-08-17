@@ -5,6 +5,7 @@ using Tarot.Application.Cards;
 using Tarot.Application.Readings;
 using Tarot.Application.Spreads;
 using Tarot.Application.Interpretations;
+using Tarot.Application.SpreadRecommendations;
 
 using Microsoft.EntityFrameworkCore;
 using Tarot.Infrastructure.Persistence;
@@ -98,6 +99,7 @@ builder.Services.AddScoped<IGetReadingByIdService, GetReadingByIdService>();
 builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
 builder.Services.AddScoped<IListReadingsService, ListReadingsService>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
+builder.Services.AddScoped<ISpreadRecommendationService, SpreadRecommendationService>();
 
 // AI related services: 
 builder.Services.AddScoped<IGenerateReadingInterpretationService,
@@ -105,6 +107,14 @@ builder.Services.AddScoped<IGenerateReadingInterpretationService,
 
 builder.Services.AddHttpClient<IReadingInterpreter,
     PythonReadingInterpreterClient>(client =>
+{
+    client.BaseAddress = aiServiceBaseUri;
+    client.Timeout = TimeSpan.FromSeconds(
+        aiServiceTimeoutSeconds);
+});
+
+builder.Services.AddHttpClient<ISpreadRecommender,
+    PythonSpreadRecommenderClient>(client =>
 {
     client.BaseAddress = aiServiceBaseUri;
     client.Timeout = TimeSpan.FromSeconds(
@@ -150,6 +160,7 @@ app.MapGet("/", () => Results.Ok(new
 app.MapHealthChecks("/health");
 
 app.MapSpreadEndpoints();
+app.MapSpreadRecommendationEndpoints();
 app.MapReadingEndpoints();
 app.MapInterpretationEndpoints();
 

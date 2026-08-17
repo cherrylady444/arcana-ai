@@ -25,12 +25,14 @@ export function AppShell({ children }: AppShellProps) {
   const newReadingIsActive =
     pathname === "/spreads" ||
     pathname.startsWith("/spreads/") ||
-    pathname === "/readings/new";
+    pathname === "/readings/new" ||
+    pathname.startsWith("/readings/new/");
 
   const readingsIsActive =
     pathname === "/readings" ||
     pathname.startsWith("/interpretations/") ||
-    (pathname.startsWith("/readings/") && pathname !== "/readings/new");
+    (pathname.startsWith("/readings/") &&
+      !pathname.startsWith("/readings/new"));
 
   const aboutIsActive = pathname === "/about";
   const isSpreadDetail = pathname.startsWith("/spreads/");
@@ -84,7 +86,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <nav className="sidebar-nav" aria-label="Main navigation">
           <Link
-            href="/spreads"
+            href="/readings/new"
             className={`sidebar-nav-link ${
               newReadingIsActive ? "is-active" : ""
             }`}

@@ -53,7 +53,7 @@ export default function HomePage() {
           Ask a question, draw the cards, and discover new perspectives.
         </p>
 
-        <Link href="/spreads" className="landing-primary-action">
+        <Link href="/readings/new" className="landing-primary-action">
           <span>Begin a reading</span>
           <SparkleIcon />
         </Link>

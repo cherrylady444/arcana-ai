@@ -8,7 +8,7 @@ export default async function SpreadsPage() {
 
   return (
     <section className="choose-spread-page">
-      <Link href="/" className="page-back-link">
+      <Link href="/readings/new" className="page-back-link">
         <ArrowLeftIcon />
         <span>New Reading</span>
       </Link>
