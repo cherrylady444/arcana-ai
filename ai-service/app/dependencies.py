@@ -4,7 +4,9 @@ from openai import AsyncOpenAI
 
 from app.config import get_settings
 from app.providers.openai import OpenAIInterpretationProvider
+from app.providers.openai_conversation import OpenAIConversationProvider
 from app.providers.openai_spread_recommendation import OpenAISpreadRecommendationProvider
+from app.services.conversation_service import ConversationService
 from app.services.interpretation_service import InterpretationService
 from app.services.spread_recommendation_service import SpreadRecommendationService
 
@@ -44,3 +46,16 @@ def get_spread_recommendation_service() -> SpreadRecommendationService:
     )
 
     return SpreadRecommendationService(provider)
+
+
+@lru_cache
+def get_conversation_service() -> ConversationService:
+    settings = get_settings()
+
+    provider = OpenAIConversationProvider(
+        client=get_openai_client(),
+        model=settings.openai_model,
+        max_output_tokens=settings.openai_max_output_tokens,
+    )
+
+    return ConversationService(provider)

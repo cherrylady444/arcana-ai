@@ -41,41 +41,13 @@ public sealed class GenerateReadingInterpretationService
             return null;
         }
 
-        /*
-         * Construct the interpretation input exclusively from the trusted
-         * PostgreSQL snapshot.
-         *
-         * The browser supplies only readingId.
-         */
-        var input = new ReadingInterpretationInput(
-            ReadingId: reading.Id,
-            UserContext: reading.UserContext,
-            Spread: new InterpretationSpread(
-                Key: reading.SpreadKey,
-                Name: reading.SpreadName,
-                Description: reading.SpreadDescription,
-                IsCustom: reading.IsCustomSpread),
-            Placements: reading.Cards
-                .OrderBy(card => card.PositionOrder)
-                .Select(card => new InterpretationPlacement(
-                    PositionOrder: card.PositionOrder,
-                    PositionKey: card.PositionKey,
-                    PositionTitle: card.PositionTitle,
-                    PositionPrompt: card.PositionPrompt,
-                    PositionDescription: card.PositionDescription,
-                    CardId: card.CardId,
-                    CardName: card.CardName,
-                    Arcana: card.Arcana,
-                    Suit: card.Suit,
-                    Orientation: card.Orientation,
-                    Meaning: card.Meaning))
-                .ToArray());
+        var input = ReadingInterpretationInputFactory.Create(reading);
 
         var generated = await _readingInterpreter.InterpretAsync(
             input,
             cancellationToken);
 
-        ValidatePositionReferences(input, generated);
+        ReadingInterpretationInputFactory.ValidatePositionReferences(input, generated);
 
         var persisted = new ReadingInterpretationDetails(
             Id: Guid.NewGuid(),
@@ -94,30 +66,5 @@ public sealed class GenerateReadingInterpretationService
             cancellationToken);
 
         return persisted;
-    }
-
-    private static void ValidatePositionReferences(
-        ReadingInterpretationInput input,
-        ReadingInterpretation interpretation)
-    {
-        var expectedOrders = input.Placements
-            .Select(placement => placement.PositionOrder)
-            .ToHashSet();
-
-        var returnedOrders = interpretation.PositionInterpretations
-            .Select(item => item.PositionOrder)
-            .ToArray();
-
-        if (returnedOrders.Length != returnedOrders.Distinct().Count())
-        {
-            throw new ReadingInterpreterResponseException(
-                "The interpretation contains duplicate position references.");
-        }
-
-        if (!expectedOrders.SetEquals(returnedOrders))
-        {
-            throw new ReadingInterpreterResponseException(
-                "The interpretation positions do not match the reading positions.");
-        }
     }
 }

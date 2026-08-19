@@ -60,11 +60,20 @@ class ReadingPlacement(ApiModel):
     meaning: NonEmptyString
 
 
+class InterpretationConversationMessage(ApiModel):
+    role: Literal["user", "assistant"]
+    content: NonEmptyString
+
+
 class InterpretationRequest(ApiModel):
     reading_id: UUID
     user_context: str | None = None
     spread: SpreadReference
     placements: list[ReadingPlacement] = Field(min_length=1)
+    conversation_context: list[InterpretationConversationMessage] = Field(
+        default_factory=list,
+        max_length=25,
+    )
 
     @model_validator(mode="after")
     def validate_unique_placements(self) -> Self:

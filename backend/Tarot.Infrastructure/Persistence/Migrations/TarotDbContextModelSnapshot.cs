@@ -22,6 +22,85 @@ namespace Tarot.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ConversationEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid?>("InterpretationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("interpretation_id");
+
+                    b.Property<Guid?>("ReadingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reading_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InterpretationId");
+
+                    b.HasIndex("ReadingId");
+
+                    b.HasIndex("UpdatedAtUtc");
+
+                    b.ToTable("conversations", (string)null);
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ConversationMessageEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("role");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("conversation_messages", (string)null);
+                });
+
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingCardEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -159,6 +238,10 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("reading_id");
 
+                    b.Property<Guid?>("SourceConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_conversation_id");
+
                     b.Property<string>("Synthesis")
                         .IsRequired()
                         .HasColumnType("text")
@@ -167,6 +250,8 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ReadingId", "CreatedAtUtc");
+
+                    b.HasIndex("SourceConversationId");
 
                     b.ToTable("reading_interpretations", (string)null);
                 });
@@ -227,6 +312,35 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.ToTable("reading_position_interpretations", (string)null);
                 });
 
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ConversationEntity", b =>
+                {
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", "Interpretation")
+                        .WithMany("Conversations")
+                        .HasForeignKey("InterpretationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", "Reading")
+                        .WithMany("Conversations")
+                        .HasForeignKey("ReadingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Interpretation");
+
+                    b.Navigation("Reading");
+                });
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ConversationMessageEntity", b =>
+                {
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ConversationEntity", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingCardEntity", b =>
                 {
                     b.HasOne("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", "Reading")
@@ -245,6 +359,11 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ReadingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Tarot.Infrastructure.Persistence.Entities.ConversationEntity", null)
+                        .WithMany()
+                        .HasForeignKey("SourceConversationId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Reading");
                 });
@@ -271,15 +390,25 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.Navigation("ReadingInterpretation");
                 });
 
+
+            modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ConversationEntity", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingEntity", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Conversations");
 
                     b.Navigation("Interpretations");
                 });
 
             modelBuilder.Entity("Tarot.Infrastructure.Persistence.Entities.ReadingInterpretationEntity", b =>
                 {
+                    b.Navigation("Conversations");
+
                     b.Navigation("PositionInterpretations");
 
                     b.Navigation("ReflectionQuestions");

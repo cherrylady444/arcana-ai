@@ -7,6 +7,7 @@ import {
   AboutIcon,
   ArrowLeftIcon,
   BrandMarkIcon,
+  ChatIcon,
   CloseIcon,
   MenuIcon,
   NewReadingIcon,
@@ -34,6 +35,7 @@ export function AppShell({ children }: AppShellProps) {
     (pathname.startsWith("/readings/") &&
       !pathname.startsWith("/readings/new"));
 
+  const arcanaIsActive = pathname === "/arcana" || pathname.startsWith("/arcana/");
   const aboutIsActive = pathname === "/about";
   const isSpreadDetail = pathname.startsWith("/spreads/");
 
@@ -105,6 +107,16 @@ export function AppShell({ children }: AppShellProps) {
           >
             <ReadingsIcon />
             <span>Readings</span>
+          </Link>
+
+          <Link
+            href="/arcana"
+            className={`sidebar-nav-link ${arcanaIsActive ? "is-active" : ""}`}
+            aria-current={arcanaIsActive ? "page" : undefined}
+            onClick={closeSidebar}
+          >
+            <ChatIcon />
+            <span>Talk to Arcana</span>
           </Link>
 
           <Link

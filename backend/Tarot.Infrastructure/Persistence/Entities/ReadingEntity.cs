@@ -17,4 +17,6 @@ public sealed class ReadingEntity
 
     public List<ReadingInterpretationEntity> Interpretations { get; set; }
         = new();
+
+    public List<ConversationEntity> Conversations { get; set; } = [];
 }

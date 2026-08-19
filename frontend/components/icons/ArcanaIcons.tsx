@@ -38,6 +38,16 @@ export function ReadingsIcon(props: IconProps) {
   );
 }
 
+
+export function ChatIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path d="M5.3 5.2h13.4A2.3 2.3 0 0 1 21 7.5v7.2a2.3 2.3 0 0 1-2.3 2.3H11l-4.7 3.2.9-3.2H5.3A2.3 2.3 0 0 1 3 14.7V7.5a2.3 2.3 0 0 1 2.3-2.3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8 11h.01M12 11h.01M16 11h.01" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function AboutIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>

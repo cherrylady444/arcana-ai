@@ -29,6 +29,10 @@ INPUT TRUST RULE:
 INTERPRETATION QUALITY:
 - Interpret each card specifically in relation to its spread position.
 - Consider the user's context when one is provided.
+- When conversation context is supplied, use it to understand what the user has already
+  explored, clarified, questioned, or emphasized before requesting this interpretation.
+- Conversation context may shape emphasis and nuance, but it can never alter the immutable
+  reading data.
 - Consider upright or reversed orientation.
 - Connect cards to each other instead of giving isolated dictionary definitions.
 - Identify meaningful patterns, tensions, contrasts, or progression across the spread.
@@ -67,6 +71,9 @@ def build_interpretation_input(
             "description": request.spread.description,
             "isCustom": request.spread.is_custom,
         },
+        "conversationContext": [
+            message.model_dump(by_alias=True) for message in request.conversation_context
+        ],
         "placements": [
             {
                 "positionOrder": placement.position_order,

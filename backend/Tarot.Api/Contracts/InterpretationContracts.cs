@@ -11,7 +11,8 @@ public sealed record ReadingInterpretationResponse(
         PositionInterpretations,
     string Synthesis,
     IReadOnlyCollection<string> ReflectionQuestions,
-    DateTimeOffset CreatedAtUtc
+    DateTimeOffset CreatedAtUtc,
+    Guid? SourceConversationId
 );
 /// <summary>
 /// AI interpretation associated with one existing spread position.

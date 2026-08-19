@@ -127,6 +127,10 @@ export default async function ReadingInterpretationsPage({
                     interpretations.length,
                   );
 
+                  const isGuidedChat = Boolean(
+                    interpretation.sourceConversationId,
+                  );
+
                   return (
                     <Link
                       key={interpretation.id}
@@ -159,8 +163,12 @@ export default async function ReadingInterpretationsPage({
                             {formatDateTime(interpretation.createdAtUtc)}
                           </span>
                           <i aria-hidden="true" />
-                          <span className="interpretation-origin-badge">
-                            From reading
+                          <span
+                            className={`interpretation-origin-badge ${
+                              isGuidedChat ? "is-guided-chat" : ""
+                            }`}
+                          >
+                            {isGuidedChat ? "From guided chat" : "From reading"}
                           </span>
                         </div>
                         <p>{interpretation.synthesis}</p>
@@ -213,12 +221,14 @@ export default async function ReadingInterpretationsPage({
           </div>
 
           <div className="origin-legend-item">
-            <span className="origin-dot is-future" aria-hidden="true">
+            <span className="origin-dot is-guided-chat" aria-hidden="true">
               <SparkleIcon />
             </span>
             <div>
-              <span className="origin-label is-future">Future guided chat</span>
-              <p>Created from a guided conversation (coming soon).</p>
+              <span className="origin-label is-guided-chat">
+                Guided chat
+              </span>
+              <p>Created from a guided conversation.</p>
             </div>
           </div>
 

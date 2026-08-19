@@ -26,6 +26,11 @@ public sealed class TarotDbContext : DbContext
         ReadingInterpretationReflectionQuestions =>
             Set<ReadingInterpretationReflectionQuestionEntity>();
 
+    public DbSet<ConversationEntity> Conversations => Set<ConversationEntity>();
+
+    public DbSet<ConversationMessageEntity> ConversationMessages =>
+        Set<ConversationMessageEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ReadingEntity>(entity =>
@@ -69,6 +74,11 @@ public sealed class TarotDbContext : DbContext
                 .WithOne(interpretation => interpretation.Reading)
                 .HasForeignKey(interpretation => interpretation.ReadingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(reading => reading.Conversations)
+                .WithOne(conversation => conversation.Reading)
+                .HasForeignKey(conversation => conversation.ReadingId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ReadingCardEntity>(entity =>
@@ -156,6 +166,9 @@ public sealed class TarotDbContext : DbContext
                 .HasColumnName("synthesis")
                 .IsRequired();
 
+            entity.Property(interpretation => interpretation.SourceConversationId)
+                .HasColumnName("source_conversation_id");
+
             entity.Property(interpretation => interpretation.CreatedAtUtc)
                 .HasColumnName("created_at_utc")
                 .IsRequired();
@@ -165,6 +178,13 @@ public sealed class TarotDbContext : DbContext
                 interpretation.ReadingId,
                 interpretation.CreatedAtUtc
             });
+
+            entity.HasIndex(interpretation => interpretation.SourceConversationId);
+
+            entity.HasOne<ConversationEntity>()
+                .WithMany()
+                .HasForeignKey(interpretation => interpretation.SourceConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasMany(
                     interpretation =>
@@ -243,5 +263,79 @@ public sealed class TarotDbContext : DbContext
                     })
                     .IsUnique();
             });
+
+
+        modelBuilder.Entity<ConversationEntity>(entity =>
+        {
+            entity.ToTable("conversations");
+
+            entity.Property(conversation => conversation.Id)
+                .HasColumnName("id");
+
+            entity.Property(conversation => conversation.Title)
+                .HasColumnName("title")
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(conversation => conversation.ReadingId)
+                .HasColumnName("reading_id");
+
+            entity.Property(conversation => conversation.InterpretationId)
+                .HasColumnName("interpretation_id");
+
+            entity.Property(conversation => conversation.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .IsRequired();
+
+            entity.Property(conversation => conversation.UpdatedAtUtc)
+                .HasColumnName("updated_at_utc")
+                .IsRequired();
+
+            entity.HasIndex(conversation => conversation.UpdatedAtUtc);
+            entity.HasIndex(conversation => conversation.ReadingId);
+            entity.HasIndex(conversation => conversation.InterpretationId);
+
+            entity.HasOne(conversation => conversation.Interpretation)
+                .WithMany(interpretation => interpretation.Conversations)
+                .HasForeignKey(conversation => conversation.InterpretationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(conversation => conversation.Messages)
+                .WithOne(message => message.Conversation)
+                .HasForeignKey(message => message.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ConversationMessageEntity>(entity =>
+        {
+            entity.ToTable("conversation_messages");
+
+            entity.Property(message => message.Id)
+                .HasColumnName("id");
+
+            entity.Property(message => message.ConversationId)
+                .HasColumnName("conversation_id")
+                .IsRequired();
+
+            entity.Property(message => message.Sequence)
+                .HasColumnName("sequence")
+                .IsRequired();
+
+            entity.Property(message => message.Role)
+                .HasColumnName("role")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(message => message.Content)
+                .HasColumnName("content")
+                .IsRequired();
+
+            entity.Property(message => message.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .IsRequired();
+
+            entity.HasIndex(message => new { message.ConversationId, message.Sequence })
+                .IsUnique();
+        });
     }
 }

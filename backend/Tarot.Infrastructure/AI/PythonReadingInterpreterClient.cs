@@ -53,6 +53,11 @@ public sealed class PythonReadingInterpreterClient : IReadingInterpreter
                     Suit: placement.Suit,
                     Orientation: placement.Orientation,
                     Meaning: placement.Meaning))
+                .ToArray(),
+            ConversationContext: input.ConversationContext
+                .Select(message => new PythonInterpretationConversationMessage(
+                    Role: message.Role,
+                    Content: message.Content))
                 .ToArray());
 
         HttpResponseMessage response;

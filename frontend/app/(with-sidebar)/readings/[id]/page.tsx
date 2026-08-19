@@ -5,6 +5,7 @@ import {
   ArrowRightIcon,
   BrandMarkIcon,
   CalendarIcon,
+  ChatIcon,
   NewReadingIcon,
   ReadingsIcon,
   SparkleIcon,
@@ -143,6 +144,14 @@ export default async function ReadingDetailsPage({
             >
               <span>See Interpretation</span>
               <ArrowRightIcon />
+            </Link>
+
+            <Link
+              href={`/arcana?readingId=${reading.id}`}
+              className="reading-explore-secondary"
+            >
+              <ChatIcon />
+              <span>Talk to Arcana</span>
             </Link>
 
             <Link href="/readings/new" className="reading-explore-secondary">

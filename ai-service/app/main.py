@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.routers.conversations import router as conversations_router
 from app.routers.interpretations import router as interpretations_router
 from app.routers.spread_recommendations import router as spread_recommendations_router
 
@@ -10,6 +11,7 @@ app = FastAPI(
 )
 
 app.include_router(interpretations_router)
+app.include_router(conversations_router)
 app.include_router(spread_recommendations_router)
 
 

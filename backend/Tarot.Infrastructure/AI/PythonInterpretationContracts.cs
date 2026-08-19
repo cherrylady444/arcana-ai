@@ -11,7 +11,13 @@ internal sealed record PythonInterpretationRequest(
     Guid ReadingId,
     string? UserContext,
     PythonInterpretationSpread Spread,
-    IReadOnlyCollection<PythonInterpretationPlacement> Placements
+    IReadOnlyCollection<PythonInterpretationPlacement> Placements,
+    IReadOnlyCollection<PythonInterpretationConversationMessage> ConversationContext
+);
+
+internal sealed record PythonInterpretationConversationMessage(
+    string Role,
+    string Content
 );
 
 internal sealed record PythonInterpretationSpread(

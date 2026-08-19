@@ -10,7 +10,13 @@ public sealed record ReadingInterpretationInput(
     Guid ReadingId,
     string? UserContext,
     InterpretationSpread Spread,
-    IReadOnlyCollection<InterpretationPlacement> Placements
+    IReadOnlyCollection<InterpretationPlacement> Placements,
+    IReadOnlyCollection<InterpretationConversationMessage> ConversationContext
+);
+
+public sealed record InterpretationConversationMessage(
+    string Role,
+    string Content
 );
 
 /// <summary>
@@ -72,5 +78,6 @@ public sealed record ReadingInterpretationDetails(
     IReadOnlyCollection<PositionInterpretation> PositionInterpretations,
     string Synthesis,
     IReadOnlyCollection<string> ReflectionQuestions,
-    DateTimeOffset CreatedAtUtc
+    DateTimeOffset CreatedAtUtc,
+    Guid? SourceConversationId = null
 );

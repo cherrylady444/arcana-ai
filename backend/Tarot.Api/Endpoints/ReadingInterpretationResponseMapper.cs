@@ -22,6 +22,7 @@ internal static class ReadingInterpretationResponseMapper
             Synthesis: interpretation.Synthesis,
             ReflectionQuestions: interpretation.ReflectionQuestions
                 .ToArray(),
-            CreatedAtUtc: interpretation.CreatedAtUtc);
+            CreatedAtUtc: interpretation.CreatedAtUtc,
+            SourceConversationId: interpretation.SourceConversationId);
     }
 }

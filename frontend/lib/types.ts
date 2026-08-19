@@ -118,4 +118,47 @@ export type ReadingInterpretation = {
   synthesis: string;
   reflectionQuestions: string[];
   createdAtUtc: string;
+  sourceConversationId: string | null;
+};
+
+export type ConversationMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAtUtc: string;
+};
+
+export type Conversation = {
+  id: string;
+  title: string;
+  readingId: string | null;
+  interpretationId: string | null;
+  messages: ConversationMessage[];
+  createdAtUtc: string;
+  updatedAtUtc: string;
+};
+
+export type ConversationSummary = {
+  id: string;
+  title: string;
+  readingId: string | null;
+  interpretationId: string | null;
+  lastMessagePreview: string;
+  messageCount: number;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+};
+
+export type PagedConversationsResponse = {
+  items: ConversationSummary[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+};
+
+export type CreateConversationRequest = {
+  message: string;
+  readingId?: string | null;
+  interpretationId?: string | null;
 };

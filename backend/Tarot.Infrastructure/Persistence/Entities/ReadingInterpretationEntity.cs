@@ -10,6 +10,8 @@ public sealed class ReadingInterpretationEntity
     public string OverallTheme { get; set; } = string.Empty;
     public string Synthesis { get; set; } = string.Empty;
 
+    public Guid? SourceConversationId { get; set; }
+
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public List<ReadingPositionInterpretationEntity>
@@ -17,4 +19,6 @@ public sealed class ReadingInterpretationEntity
 
     public List<ReadingInterpretationReflectionQuestionEntity>
         ReflectionQuestions { get; set; } = [];
+
+    public List<ConversationEntity> Conversations { get; set; } = [];
 }

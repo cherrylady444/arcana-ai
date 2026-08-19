@@ -2,6 +2,7 @@ using Serilog;
 
 using Tarot.Api.Endpoints;
 using Tarot.Application.Cards;
+using Tarot.Application.Conversations;
 using Tarot.Application.Readings;
 using Tarot.Application.Spreads;
 using Tarot.Application.Interpretations;
@@ -100,10 +101,14 @@ builder.Services.AddScoped<IReadingRepository, PostgresReadingRepository>();
 builder.Services.AddScoped<IListReadingsService, ListReadingsService>();
 builder.Services.AddSingleton<ISpreadCatalog, BuiltInSpreadCatalog>();
 builder.Services.AddScoped<ISpreadRecommendationService, SpreadRecommendationService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IConversationRepository, PostgresConversationRepository>();
 
 // AI related services: 
 builder.Services.AddScoped<IGenerateReadingInterpretationService,
     GenerateReadingInterpretationService>();
+builder.Services.AddScoped<IGenerateConversationInterpretationService,
+    GenerateConversationInterpretationService>();
 
 builder.Services.AddHttpClient<IReadingInterpreter,
     PythonReadingInterpreterClient>(client =>
@@ -115,6 +120,15 @@ builder.Services.AddHttpClient<IReadingInterpreter,
 
 builder.Services.AddHttpClient<ISpreadRecommender,
     PythonSpreadRecommenderClient>(client =>
+{
+    client.BaseAddress = aiServiceBaseUri;
+    client.Timeout = TimeSpan.FromSeconds(
+        aiServiceTimeoutSeconds);
+});
+
+
+builder.Services.AddHttpClient<IConversationResponder,
+    PythonConversationResponderClient>(client =>
 {
     client.BaseAddress = aiServiceBaseUri;
     client.Timeout = TimeSpan.FromSeconds(
@@ -163,6 +177,7 @@ app.MapSpreadEndpoints();
 app.MapSpreadRecommendationEndpoints();
 app.MapReadingEndpoints();
 app.MapInterpretationEndpoints();
+app.MapConversationEndpoints();
 
 // app.MapGet("/api/spreads", GetSpreadSummaries);
 

@@ -1,5 +1,8 @@
 import type {
+  Conversation,
+  CreateConversationRequest,
   CreateReadingRequest,
+  PagedConversationsResponse,
   PagedReadingsResponse,
   Reading,
   ReadingInterpretation,
@@ -248,6 +251,152 @@ export async function getInterpretationById(
     throw new Error(
       `Failed to load the interpretation. ${await readErrorResponse(response)}`,
     );
+  }
+
+  return (await response.json()) as ReadingInterpretation;
+}
+
+
+/** Starts and persists a new Talk to Arcana conversation. */
+export async function createConversation(
+  request: CreateConversationRequest,
+): Promise<Conversation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(`${baseUrl}/api/conversations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("The linked reading or interpretation could not be found.");
+    }
+
+    if (response.status === 503) {
+      throw new Error("Arcana is temporarily unavailable. Please try again in a moment.");
+    }
+
+    if (response.status === 502) {
+      throw new Error("Arcana could not respond right now. Please try again.");
+    }
+
+    throw new Error(await readErrorResponse(response));
+  }
+
+  return (await response.json()) as Conversation;
+}
+
+/** Retrieves one persisted Talk to Arcana conversation. */
+export async function getConversationById(
+  id: string,
+): Promise<Conversation | null> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations/${encodeURIComponent(id)}`,
+    { cache: "no-store" },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load the conversation. ${await readErrorResponse(response)}`,
+    );
+  }
+
+  return (await response.json()) as Conversation;
+}
+
+/** Retrieves recent Talk to Arcana conversations. */
+export async function getConversations(
+  page = 1,
+  pageSize = 12,
+): Promise<PagedConversationsResponse> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations?page=${page}&pageSize=${pageSize}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load conversations. ${await readErrorResponse(response)}`,
+    );
+  }
+
+  return (await response.json()) as PagedConversationsResponse;
+}
+
+/** Adds one user turn and persists Arcana's response in the same conversation. */
+export async function sendConversationMessage(
+  conversationId: string,
+  message: string,
+): Promise<Conversation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations/${encodeURIComponent(conversationId)}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("This conversation or its linked context could not be found.");
+    }
+
+    if (response.status === 503) {
+      throw new Error("Arcana is temporarily unavailable. Please try again in a moment.");
+    }
+
+    if (response.status === 502) {
+      throw new Error("Arcana could not complete that response. Please try again.");
+    }
+
+    throw new Error(await readErrorResponse(response));
+  }
+
+  return (await response.json()) as Conversation;
+}
+
+
+/** Creates a structured reading interpretation using a linked conversation as extra context. */
+export async function generateConversationInterpretation(
+  conversationId: string,
+): Promise<ReadingInterpretation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations/${encodeURIComponent(conversationId)}/interpretations`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      throw new Error(await readErrorResponse(response));
+    }
+
+    if (response.status === 404) {
+      throw new Error("This conversation or its linked reading could not be found.");
+    }
+
+    if (response.status === 503) {
+      throw new Error("Arcana is temporarily unavailable. Please try again in a moment.");
+    }
+
+    if (response.status === 502) {
+      throw new Error("Arcana could not create an interpretation right now. Please try again.");
+    }
+
+    throw new Error(await readErrorResponse(response));
   }
 
   return (await response.json()) as ReadingInterpretation;

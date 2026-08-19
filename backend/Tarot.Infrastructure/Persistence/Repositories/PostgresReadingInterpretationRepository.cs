@@ -25,6 +25,7 @@ public sealed class PostgresReadingInterpretationRepository
             ReadingId = interpretation.ReadingId,
             OverallTheme = interpretation.OverallTheme,
             Synthesis = interpretation.Synthesis,
+            SourceConversationId = interpretation.SourceConversationId,
             CreatedAtUtc = interpretation.CreatedAtUtc,
 
             PositionInterpretations = interpretation
@@ -153,6 +154,7 @@ public sealed class PostgresReadingInterpretationRepository
                 .OrderBy(question => question.QuestionOrder)
                 .Select(question => question.Question)
                 .ToArray(),
-            CreatedAtUtc: entity.CreatedAtUtc);
+            CreatedAtUtc: entity.CreatedAtUtc,
+            SourceConversationId: entity.SourceConversationId);
     }
 }

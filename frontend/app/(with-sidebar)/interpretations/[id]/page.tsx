@@ -4,6 +4,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   BrandMarkIcon,
+  ChatIcon,
   ChevronDownIcon,
   ReadingsIcon,
   SparkleIcon,
@@ -72,6 +73,10 @@ export default async function InterpretationDetailsPage({
     (item) => item.id !== interpretation.id,
   );
 
+  const interpretationOrigin = interpretation.sourceConversationId
+  ? "From guided chat"
+  : "From reading";
+
   return (
     <section className="interpretation-detail-page">
       <div className="interpretation-detail-topbar">
@@ -91,7 +96,7 @@ export default async function InterpretationDetailsPage({
               <SparkleIcon />
               <span>Created {formatDateTime(interpretation.createdAtUtc)}</span>
               <SparkleIcon />
-              <span>Origin: From reading</span>
+              <span>Origin: {interpretationOrigin}</span>
             </p>
           </header>
         </div>
@@ -230,6 +235,23 @@ export default async function InterpretationDetailsPage({
             className="other-interpretations-view-all"
           >
             <span>View all</span>
+            <ArrowRightIcon />
+          </Link>
+
+          <Link
+            href={
+              interpretation.sourceConversationId
+                ? `/arcana/${interpretation.sourceConversationId}`
+                : `/arcana?interpretationId=${interpretation.id}`
+            }
+            className="interpretation-talk-to-arcana"
+          >
+            <ChatIcon />
+            <span>
+              {interpretation.sourceConversationId
+                ? "Return to conversation"
+                : "Talk to Arcana"}
+            </span>
             <ArrowRightIcon />
           </Link>
         </aside>
