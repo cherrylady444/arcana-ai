@@ -83,6 +83,7 @@ export type Reading = {
   spreadName: string;
   spreadDescription: string;
   isCustomSpread: boolean;
+  sourceConversationId: string | null;
   cards: ReadingCard[];
   createdAtUtc: string;
 };
@@ -95,6 +96,7 @@ export type ReadingSummary = {
   isCustomSpread: boolean;
   cardCount: number;
   createdAtUtc: string;
+  sourceConversationId: string | null;
 };
 
 export type PagedReadingsResponse = {
@@ -125,6 +127,7 @@ export type ConversationMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  suggestedAction: "reading" | null;
   createdAtUtc: string;
 };
 
@@ -161,4 +164,9 @@ export type CreateConversationRequest = {
   message: string;
   readingId?: string | null;
   interpretationId?: string | null;
+};
+
+export type CreateConversationReadingRequest = {
+  spreadKey?: string | null;
+  customSpread?: CustomSpreadInput | null;
 };

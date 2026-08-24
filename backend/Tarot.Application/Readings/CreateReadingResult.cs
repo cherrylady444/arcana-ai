@@ -10,5 +10,6 @@ public sealed record CreateReadingResult(
     IReadOnlyCollection<ReadingCard> Cards,
     DateTimeOffset CreatedAtUtc,
     string SpreadDescription = "",
-    bool IsCustomSpread = false
+    bool IsCustomSpread = false,
+    Guid? SourceConversationId = null
 );

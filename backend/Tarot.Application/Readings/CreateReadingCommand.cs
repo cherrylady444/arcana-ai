@@ -9,5 +9,6 @@ namespace Tarot.Application.Readings;
 public sealed record CreateReadingCommand(
     string? SpreadKey = null,
     string? UserContext = null,
-    CustomSpreadDefinition? CustomSpread = null
+    CustomSpreadDefinition? CustomSpread = null,
+    Guid? SourceConversationId = null
 );

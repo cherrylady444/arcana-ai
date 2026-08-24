@@ -7,5 +7,6 @@ public sealed record ReadingSummary(
     string SpreadName,
     int CardCount,
     DateTimeOffset CreatedAtUtc,
-    bool IsCustomSpread = false
+    bool IsCustomSpread = false,
+    Guid? SourceConversationId = null
 );

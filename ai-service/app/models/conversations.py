@@ -95,3 +95,4 @@ class ConversationResponseRequest(ApiModel):
 
 class ConversationResponse(ApiModel):
     message: AssistantText
+    suggested_action: Literal["reading"] | None

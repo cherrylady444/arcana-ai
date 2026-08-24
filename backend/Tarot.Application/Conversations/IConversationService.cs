@@ -1,3 +1,6 @@
+using Tarot.Application.Readings;
+using Tarot.Application.SpreadRecommendations;
+
 namespace Tarot.Application.Conversations;
 
 public interface IConversationService
@@ -18,5 +21,14 @@ public interface IConversationService
     Task<ConversationDetails?> SendMessageAsync(
         Guid conversationId,
         string message,
+        CancellationToken cancellationToken = default);
+
+    Task<SpreadRecommendation?> RecommendReadingAsync(
+        Guid conversationId,
+        CancellationToken cancellationToken = default);
+
+    Task<CreateReadingResult?> CreateReadingAsync(
+        Guid conversationId,
+        CreateConversationReadingCommand command,
         CancellationToken cancellationToken = default);
 }

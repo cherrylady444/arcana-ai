@@ -65,6 +65,7 @@ public sealed class CreateReadingService : IReadingService
             SpreadName: spread.Name,
             SpreadDescription: spread.Description,
             IsCustomSpread: !spread.IsBuiltIn,
+            SourceConversationId: command.SourceConversationId,
             Cards: readingCards,
             CreatedAtUtc: DateTimeOffset.UtcNow);
 

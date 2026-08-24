@@ -27,6 +27,11 @@ public sealed class PythonSpreadRecommenderClient : ISpreadRecommender
     {
         var request = new PythonSpreadRecommendationRequest(
             Situation: input.Situation,
+            ConversationMessages: input.ConversationMessages?
+                .Select(message => new PythonSpreadRecommendationMessage(
+                    Role: message.Role,
+                    Content: message.Content))
+                .ToArray(),
             Spreads: input.Spreads
                 .Select(spread => new PythonSpreadRecommendationCandidate(
                     Key: spread.Key,

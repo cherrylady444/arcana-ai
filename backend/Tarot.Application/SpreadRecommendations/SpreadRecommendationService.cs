@@ -10,6 +10,7 @@ namespace Tarot.Application.SpreadRecommendations;
 public sealed class SpreadRecommendationService : ISpreadRecommendationService
 {
     public const int MaxSituationLength = 1000;
+    public const int MaxConversationMessages = 25;
 
     private readonly ISpreadCatalog _spreadCatalog;
     private readonly ISpreadRecommender _spreadRecommender;
@@ -22,7 +23,7 @@ public sealed class SpreadRecommendationService : ISpreadRecommendationService
         _spreadRecommender = spreadRecommender;
     }
 
-    public async Task<SpreadRecommendation> RecommendAsync(
+    public Task<SpreadRecommendation> RecommendAsync(
         string situation,
         CancellationToken cancellationToken = default)
     {
@@ -42,6 +43,42 @@ public sealed class SpreadRecommendationService : ISpreadRecommendationService
                 nameof(situation));
         }
 
+        return RecommendCoreAsync(
+            situation: normalizedSituation,
+            conversationMessages: null,
+            cancellationToken);
+    }
+
+    public Task<SpreadRecommendation> RecommendFromConversationAsync(
+        IReadOnlyCollection<SpreadRecommendationMessage> messages,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(messages);
+
+        if (messages.Count is < 1 or > MaxConversationMessages)
+        {
+            throw new ArgumentException(
+                $"A conversation recommendation requires between 1 and {MaxConversationMessages} messages.",
+                nameof(messages));
+        }
+
+        var normalizedMessages = messages
+            .Select(message => new SpreadRecommendationMessage(
+                Role: NormalizeRole(message.Role),
+                Content: NormalizeMessageContent(message.Content)))
+            .ToArray();
+
+        return RecommendCoreAsync(
+            situation: null,
+            conversationMessages: normalizedMessages,
+            cancellationToken);
+    }
+
+    private async Task<SpreadRecommendation> RecommendCoreAsync(
+        string? situation,
+        IReadOnlyCollection<SpreadRecommendationMessage>? conversationMessages,
+        CancellationToken cancellationToken)
+    {
         var spreads = _spreadCatalog.GetBuiltInSpreads();
 
         if (spreads.Count == 0)
@@ -70,7 +107,8 @@ public sealed class SpreadRecommendationService : ISpreadRecommendationService
 
         var decision = await _spreadRecommender.RecommendAsync(
             new SpreadRecommendationInput(
-                Situation: normalizedSituation,
+                Situation: situation,
+                ConversationMessages: conversationMessages,
                 Spreads: candidates),
             cancellationToken);
 
@@ -181,5 +219,33 @@ public sealed class SpreadRecommendationService : ISpreadRecommendationService
                 "The AI service returned an invalid custom spread definition.",
                 exception);
         }
+    }
+
+    private static string NormalizeRole(string? role)
+    {
+        var normalized = role?.Trim().ToLowerInvariant() ?? string.Empty;
+
+        if (normalized is not ("user" or "assistant"))
+        {
+            throw new ArgumentException(
+                "Conversation recommendation messages must have role 'user' or 'assistant'.",
+                nameof(role));
+        }
+
+        return normalized;
+    }
+
+    private static string NormalizeMessageContent(string? content)
+    {
+        var normalized = content?.Trim() ?? string.Empty;
+
+        if (normalized.Length == 0)
+        {
+            throw new ArgumentException(
+                "Conversation recommendation messages cannot be empty.",
+                nameof(content));
+        }
+
+        return normalized;
     }
 }

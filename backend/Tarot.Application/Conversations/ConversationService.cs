@@ -1,5 +1,6 @@
 using Tarot.Application.Interpretations;
 using Tarot.Application.Readings;
+using Tarot.Application.SpreadRecommendations;
 
 namespace Tarot.Application.Conversations;
 
@@ -8,22 +9,29 @@ public sealed class ConversationService : IConversationService
     private const int MaxMessageLength = 4000;
     private const int MaxContextMessages = 25;
     private const int MaxTitleLength = 72;
+    private const int MaxReadingUserContextLength = 1000;
 
     private readonly IConversationRepository _conversationRepository;
     private readonly IConversationResponder _conversationResponder;
     private readonly IReadingRepository _readingRepository;
     private readonly IReadingInterpretationRepository _interpretationRepository;
+    private readonly ISpreadRecommendationService _spreadRecommendationService;
+    private readonly IReadingService _readingService;
 
     public ConversationService(
         IConversationRepository conversationRepository,
         IConversationResponder conversationResponder,
         IReadingRepository readingRepository,
-        IReadingInterpretationRepository interpretationRepository)
+        IReadingInterpretationRepository interpretationRepository,
+        ISpreadRecommendationService spreadRecommendationService,
+        IReadingService readingService)
     {
         _conversationRepository = conversationRepository;
         _conversationResponder = conversationResponder;
         _readingRepository = readingRepository;
         _interpretationRepository = interpretationRepository;
+        _spreadRecommendationService = spreadRecommendationService;
+        _readingService = readingService;
     }
 
     public async Task<ConversationDetails> CreateAsync(
@@ -41,9 +49,10 @@ public sealed class ConversationService : IConversationService
             Id: Guid.NewGuid(),
             Role: ConversationMessageRole.User,
             Content: normalizedMessage,
+            SuggestedAction: null,
             CreatedAtUtc: now);
 
-        var assistantContent = await _conversationResponder.RespondAsync(
+        var assistantResult = await _conversationResponder.RespondAsync(
             new ConversationResponseInput(
                 Messages: [userMessage],
                 Context: context),
@@ -52,7 +61,10 @@ public sealed class ConversationService : IConversationService
         var assistantMessage = new ConversationMessageDetails(
             Id: Guid.NewGuid(),
             Role: ConversationMessageRole.Assistant,
-            Content: NormalizeAssistantMessage(assistantContent),
+            Content: NormalizeAssistantMessage(assistantResult.Message),
+            SuggestedAction: context?.Reading is null
+                ? assistantResult.SuggestedAction
+                : null,
             CreatedAtUtc: DateTimeOffset.UtcNow);
 
         var conversation = new ConversationDetails(
@@ -118,6 +130,7 @@ public sealed class ConversationService : IConversationService
             Id: Guid.NewGuid(),
             Role: ConversationMessageRole.User,
             Content: normalizedMessage,
+            SuggestedAction: null,
             CreatedAtUtc: DateTimeOffset.UtcNow);
 
         var recentHistory = conversation.Messages
@@ -125,7 +138,7 @@ public sealed class ConversationService : IConversationService
             .Append(userMessage)
             .ToArray();
 
-        var assistantContent = await _conversationResponder.RespondAsync(
+        var assistantResult = await _conversationResponder.RespondAsync(
             new ConversationResponseInput(
                 Messages: recentHistory,
                 Context: context),
@@ -134,7 +147,10 @@ public sealed class ConversationService : IConversationService
         var assistantMessage = new ConversationMessageDetails(
             Id: Guid.NewGuid(),
             Role: ConversationMessageRole.Assistant,
-            Content: NormalizeAssistantMessage(assistantContent),
+            Content: NormalizeAssistantMessage(assistantResult.Message),
+            SuggestedAction: context?.Reading is null
+                ? assistantResult.SuggestedAction
+                : null,
             CreatedAtUtc: DateTimeOffset.UtcNow);
 
         await _conversationRepository.AppendExchangeAsync(
@@ -147,6 +163,70 @@ public sealed class ConversationService : IConversationService
         return await _conversationRepository.GetByIdAsync(
             conversationId,
             cancellationToken);
+    }
+
+    public async Task<SpreadRecommendation?> RecommendReadingAsync(
+        Guid conversationId,
+        CancellationToken cancellationToken = default)
+    {
+        var conversation = await _conversationRepository.GetByIdAsync(
+            conversationId,
+            cancellationToken);
+
+        if (conversation is null)
+        {
+            return null;
+        }
+
+        EnsureConversationCanCreateReading(conversation);
+
+        var recentMessages = conversation.Messages
+            .TakeLast(MaxContextMessages)
+            .Select(message => new SpreadRecommendationMessage(
+                Role: message.Role == ConversationMessageRole.User
+                    ? "user"
+                    : "assistant",
+                Content: message.Content))
+            .ToArray();
+
+        return await _spreadRecommendationService.RecommendFromConversationAsync(
+            recentMessages,
+            cancellationToken);
+    }
+
+    public async Task<CreateReadingResult?> CreateReadingAsync(
+        Guid conversationId,
+        CreateConversationReadingCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+
+        var conversation = await _conversationRepository.GetByIdAsync(
+            conversationId,
+            cancellationToken);
+
+        if (conversation is null)
+        {
+            return null;
+        }
+
+        EnsureConversationCanCreateReading(conversation);
+
+        var reading = await _readingService.CreateReadingAsync(
+            new CreateReadingCommand(
+                SpreadKey: command.SpreadKey,
+                UserContext: BuildReadingUserContext(conversation.Messages),
+                CustomSpread: command.CustomSpread,
+                SourceConversationId: conversation.Id),
+            cancellationToken);
+
+        await _conversationRepository.AttachReadingAsync(
+            conversation.Id,
+            reading.Id,
+            DateTimeOffset.UtcNow,
+            cancellationToken);
+
+        return reading;
     }
 
     private async Task<ConversationAiContext?> ResolveContextAsync(
@@ -197,6 +277,65 @@ public sealed class ConversationService : IConversationService
         }
 
         return new ConversationAiContext(reading, interpretation);
+    }
+
+    private static void EnsureConversationCanCreateReading(
+        ConversationDetails conversation)
+    {
+        if (conversation.ReadingId.HasValue)
+        {
+            throw new ArgumentException(
+                "This conversation is already linked to a reading.");
+        }
+
+        if (conversation.InterpretationId.HasValue)
+        {
+            throw new ArgumentException(
+                "A conversation linked to an interpretation already has reading context.");
+        }
+    }
+
+    private static string BuildReadingUserContext(
+        IReadOnlyCollection<ConversationMessageDetails> messages)
+    {
+        var recentUserMessages = messages
+            .TakeLast(MaxContextMessages)
+            .Where(message => message.Role == ConversationMessageRole.User)
+            .Select(message => message.Content.Trim())
+            .Where(content => content.Length > 0)
+            .ToArray();
+
+        if (recentUserMessages.Length == 0)
+        {
+            return "Reading created from a Talk to Arcana conversation.";
+        }
+
+        var selected = new List<string>();
+        var currentLength = 0;
+
+        for (var index = recentUserMessages.Length - 1; index >= 0; index--)
+        {
+            var candidate = recentUserMessages[index];
+            var separatorLength = selected.Count == 0 ? 0 : 2;
+
+            if (currentLength + separatorLength + candidate.Length > MaxReadingUserContextLength)
+            {
+                var remaining = MaxReadingUserContextLength - currentLength - separatorLength;
+
+                if (remaining > 40)
+                {
+                    selected.Add(candidate[^remaining..]);
+                }
+
+                break;
+            }
+
+            selected.Add(candidate);
+            currentLength += separatorLength + candidate.Length;
+        }
+
+        selected.Reverse();
+        return string.Join("\n\n", selected).Trim();
     }
 
     private static string NormalizeMessage(string? message)

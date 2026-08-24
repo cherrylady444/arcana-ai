@@ -49,4 +49,7 @@ internal sealed record PythonConversationRequest(
     PythonConversationContext? Context
 );
 
-internal sealed record PythonConversationResponse(string Message);
+internal sealed record PythonConversationResponse(
+    string Message,
+    string? SuggestedAction
+);

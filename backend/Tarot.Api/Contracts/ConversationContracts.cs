@@ -8,10 +8,16 @@ public sealed record CreateConversationRequest(
 
 public sealed record SendConversationMessageRequest(string Message);
 
+public sealed record CreateConversationReadingRequest(
+    string? SpreadKey,
+    CustomSpreadRequest? CustomSpread = null
+);
+
 public sealed record ConversationMessageResponse(
     Guid Id,
     string Role,
     string Content,
+    string? SuggestedAction,
     DateTimeOffset CreatedAtUtc
 );
 

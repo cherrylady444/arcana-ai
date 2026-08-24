@@ -1,5 +1,6 @@
 using Tarot.Application.Interpretations;
 using Tarot.Application.Readings;
+using Tarot.Application.Spreads;
 
 namespace Tarot.Application.Conversations;
 
@@ -9,11 +10,17 @@ public enum ConversationMessageRole
     Assistant
 }
 
+public enum ConversationSuggestedAction
+{
+    Reading
+}
+
 public sealed record ConversationMessageDetails(
     Guid Id,
     ConversationMessageRole Role,
     string Content,
-    DateTimeOffset CreatedAtUtc
+    DateTimeOffset CreatedAtUtc,
+    ConversationSuggestedAction? SuggestedAction = null
 );
 
 public sealed record ConversationDetails(
@@ -51,6 +58,11 @@ public sealed record CreateConversationCommand(
     Guid? InterpretationId = null
 );
 
+public sealed record CreateConversationReadingCommand(
+    string? SpreadKey,
+    CustomSpreadDefinition? CustomSpread
+);
+
 public sealed record ConversationAiContext(
     ReadingDetails? Reading,
     ReadingInterpretationDetails? Interpretation
@@ -59,4 +71,9 @@ public sealed record ConversationAiContext(
 public sealed record ConversationResponseInput(
     IReadOnlyCollection<ConversationMessageDetails> Messages,
     ConversationAiContext? Context
+);
+
+public sealed record ConversationResponderResult(
+    string Message,
+    ConversationSuggestedAction? SuggestedAction
 );

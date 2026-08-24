@@ -34,6 +34,7 @@ public sealed record ReadingResponse(
     string SpreadName,
     string SpreadDescription,
     bool IsCustomSpread,
+    Guid? SourceConversationId,
     IReadOnlyCollection<ReadingCardResponse> Cards,
     DateTimeOffset CreatedAtUtc
 );

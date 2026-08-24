@@ -21,4 +21,10 @@ public interface IConversationRepository
         ConversationMessageDetails assistantMessage,
         DateTimeOffset updatedAtUtc,
         CancellationToken cancellationToken = default);
+
+    Task AttachReadingAsync(
+        Guid conversationId,
+        Guid readingId,
+        DateTimeOffset updatedAtUtc,
+        CancellationToken cancellationToken = default);
 }

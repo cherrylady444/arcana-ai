@@ -19,7 +19,7 @@ public sealed class PythonConversationResponderClient : IConversationResponder
         _httpClient = httpClient;
     }
 
-    public async Task<string> RespondAsync(
+    public async Task<ConversationResponderResult> RespondAsync(
         ConversationResponseInput input,
         CancellationToken cancellationToken = default)
     {
@@ -89,7 +89,17 @@ public sealed class PythonConversationResponderClient : IConversationResponder
                     "The AI service returned an incomplete conversation response.");
             }
 
-            return payload.Message.Trim();
+            ConversationSuggestedAction? suggestedAction = payload.SuggestedAction?.Trim().ToLowerInvariant() switch
+            {
+                null or "" => null,
+                "reading" => ConversationSuggestedAction.Reading,
+                _ => throw new ConversationResponderResponseException(
+                    "The AI service returned an unknown conversation action.")
+            };
+
+            return new ConversationResponderResult(
+                Message: payload.Message.Trim(),
+                SuggestedAction: suggestedAction);
         }
     }
 

@@ -1,8 +1,14 @@
 namespace Tarot.Infrastructure.AI;
 
 internal sealed record PythonSpreadRecommendationRequest(
-    string Situation,
+    string? Situation,
+    IReadOnlyCollection<PythonSpreadRecommendationMessage>? ConversationMessages,
     IReadOnlyCollection<PythonSpreadRecommendationCandidate> Spreads
+);
+
+internal sealed record PythonSpreadRecommendationMessage(
+    string Role,
+    string Content
 );
 
 internal sealed record PythonSpreadRecommendationCandidate(

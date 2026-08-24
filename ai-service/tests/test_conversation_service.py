@@ -14,7 +14,10 @@ class FakeConversationProvider:
         request: ConversationResponseRequest,
     ) -> ConversationResponse:
         assert request.messages[-1].content == "What should I focus on?"
-        return ConversationResponse(message="Focus on what is within your control.")
+        return ConversationResponse(
+            message="Focus on what is within your control.",
+            suggested_action=None,
+        )
 
 
 def test_conversation_service_returns_provider_response() -> None:

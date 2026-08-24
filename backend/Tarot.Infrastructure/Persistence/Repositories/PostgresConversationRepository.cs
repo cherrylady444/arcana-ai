@@ -122,6 +122,33 @@ public sealed class PostgresConversationRepository : IConversationRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AttachReadingAsync(
+        Guid conversationId,
+        Guid readingId,
+        DateTimeOffset updatedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var conversation = await _dbContext.Conversations
+            .SingleOrDefaultAsync(item => item.Id == conversationId, cancellationToken);
+
+        if (conversation is null)
+        {
+            throw new InvalidOperationException(
+                $"Conversation '{conversationId}' no longer exists.");
+        }
+
+        if (conversation.ReadingId.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"Conversation '{conversationId}' is already linked to a reading.");
+        }
+
+        conversation.ReadingId = readingId;
+        conversation.UpdatedAtUtc = updatedAtUtc;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     private static ConversationMessageEntity ToEntity(
         Guid conversationId,
         ConversationMessageDetails message,
@@ -134,6 +161,9 @@ public sealed class PostgresConversationRepository : IConversationRepository
             Sequence = sequence,
             Role = message.Role == ConversationMessageRole.User ? "user" : "assistant",
             Content = message.Content,
+            SuggestedAction = message.SuggestedAction == ConversationSuggestedAction.Reading
+                ? "reading"
+                : null,
             CreatedAtUtc = message.CreatedAtUtc
         };
     }
@@ -153,6 +183,12 @@ public sealed class PostgresConversationRepository : IConversationRepository
                         ? ConversationMessageRole.User
                         : ConversationMessageRole.Assistant,
                     Content: message.Content,
+                    SuggestedAction: string.Equals(
+                        message.SuggestedAction,
+                        "reading",
+                        StringComparison.OrdinalIgnoreCase)
+                            ? ConversationSuggestedAction.Reading
+                            : null,
                     CreatedAtUtc: message.CreatedAtUtc))
                 .ToArray(),
             CreatedAtUtc: entity.CreatedAtUtc,

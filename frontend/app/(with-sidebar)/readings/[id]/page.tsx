@@ -125,6 +125,16 @@ export default async function ReadingDetailsPage({
                 <p>{createdAt}</p>
               </div>
             </div>
+
+            {reading.sourceConversationId ? (
+              <div className="reading-info-row">
+                <ChatIcon />
+                <div>
+                  <span>Origin</span>
+                  <p>Guided conversation</p>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className="reading-explore-card reading-explore-card-v2">
@@ -146,13 +156,23 @@ export default async function ReadingDetailsPage({
               <ArrowRightIcon />
             </Link>
 
-            <Link
-              href={`/arcana?readingId=${reading.id}`}
-              className="reading-explore-secondary"
-            >
-              <ChatIcon />
-              <span>Talk to Arcana</span>
-            </Link>
+            {reading.sourceConversationId ? (
+              <Link
+                href={`/arcana/${reading.sourceConversationId}`}
+                className="reading-explore-secondary"
+              >
+                <ChatIcon />
+                <span>Return to conversation</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/arcana?readingId=${reading.id}`}
+                className="reading-explore-secondary"
+              >
+                <ChatIcon />
+                <span>Talk to Arcana</span>
+              </Link>
+            )}
 
             <Link href="/readings/new" className="reading-explore-secondary">
               <NewReadingIcon />

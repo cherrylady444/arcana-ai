@@ -19,6 +19,11 @@ SituationText = Annotated[
     StringConstraints(strip_whitespace=True, min_length=1, max_length=1000),
 ]
 
+ConversationMessageText = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=7000),
+]
+
 SpreadName = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=100),
@@ -75,12 +80,28 @@ class SpreadRecommendationCandidate(ApiModel):
     positions: list[SpreadRecommendationPosition] = Field(min_length=1)
 
 
+class SpreadRecommendationConversationMessage(ApiModel):
+    role: Literal["user", "assistant"]
+    content: ConversationMessageText
+
+
 class SpreadRecommendationRequest(ApiModel):
-    situation: SituationText
+    situation: SituationText | None = None
+    conversation_messages: list[SpreadRecommendationConversationMessage] | None = Field(
+        default=None,
+        min_length=1,
+        max_length=25,
+    )
     spreads: list[SpreadRecommendationCandidate] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_unique_spreads(self) -> Self:
+    def validate_request_shape(self) -> Self:
+        has_situation = self.situation is not None
+        has_conversation = self.conversation_messages is not None
+
+        if has_situation == has_conversation:
+            raise ValueError("provide exactly one of situation or conversationMessages")
+
         spread_keys = [spread.key for spread in self.spreads]
 
         if len(spread_keys) != len(set(spread_keys)):

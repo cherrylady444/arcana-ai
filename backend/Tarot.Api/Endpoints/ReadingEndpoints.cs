@@ -66,6 +66,7 @@ public static class ReadingEndpoints
                 SpreadName: result.SpreadName,
                 SpreadDescription: result.SpreadDescription,
                 IsCustomSpread: result.IsCustomSpread,
+                SourceConversationId: result.SourceConversationId,
                 Cards: result.Cards
                     .Select(ToCreatedReadingCardResponse)
                     .ToList(),
@@ -106,6 +107,7 @@ public static class ReadingEndpoints
             SpreadName: reading.SpreadName,
             SpreadDescription: reading.SpreadDescription,
             IsCustomSpread: reading.IsCustomSpread,
+            SourceConversationId: reading.SourceConversationId,
             Cards: reading.Cards
                 .Select(ToSavedReadingCardResponse)
                 .ToList(),

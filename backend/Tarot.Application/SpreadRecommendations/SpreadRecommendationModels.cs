@@ -1,13 +1,19 @@
 namespace Tarot.Application.SpreadRecommendations;
 
 /// <summary>
-/// User situation plus the trusted built-in spreads that the AI may compare
-/// against. ASP.NET constructs this input; the browser never supplies
-/// authoritative built-in spread definitions.
+/// User situation or recent Talk to Arcana messages plus the trusted built-in
+/// spreads that the AI may compare against. ASP.NET constructs this input; the
+/// browser never supplies authoritative built-in spread definitions.
 /// </summary>
 public sealed record SpreadRecommendationInput(
-    string Situation,
+    string? Situation,
+    IReadOnlyCollection<SpreadRecommendationMessage>? ConversationMessages,
     IReadOnlyCollection<SpreadRecommendationCandidate> Spreads
+);
+
+public sealed record SpreadRecommendationMessage(
+    string Role,
+    string Content
 );
 
 public sealed record SpreadRecommendationCandidate(

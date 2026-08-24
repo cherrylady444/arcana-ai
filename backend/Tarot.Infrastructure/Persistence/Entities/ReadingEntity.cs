@@ -11,6 +11,9 @@ public sealed class ReadingEntity
     public string SpreadDescription { get; set; } = string.Empty;
     public bool IsCustomSpread { get; set; }
 
+    public Guid? SourceConversationId { get; set; }
+    public ConversationEntity? SourceConversation { get; set; }
+
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public List<ReadingCardEntity> Cards { get; set; } = new();

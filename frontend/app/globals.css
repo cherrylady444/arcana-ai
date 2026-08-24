@@ -4198,3 +4198,251 @@ a {
     width: 100%;
   }
 }
+
+/* =========================================================
+   AI-8 Conversation-to-reading integration
+   ========================================================= */
+
+.arcana-thread-reading-buttons {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.arcana-thread-reading-buttons a,
+.arcana-thread-reading-buttons button,
+.arcana-message-reading-action,
+.arcana-reading-primary-button,
+.arcana-reading-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-family: var(--heading-font);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arcana-thread-reading-buttons a {
+  border: 1px solid #4c465d;
+  background: rgba(24, 22, 39, 0.78);
+  color: #d6ccd6;
+}
+
+.arcana-thread-reading-buttons a:hover {
+  border-color: #6f637d;
+  background: rgba(39, 34, 52, 0.9);
+}
+
+.arcana-thread-reading-offer {
+  background: linear-gradient(
+    90deg,
+    rgba(56, 42, 68, 0.34),
+    rgba(18, 18, 34, 0.34)
+  );
+}
+
+.arcana-message-reading-action {
+  margin-top: 14px;
+  border: 1px solid #6d4e78;
+  background: rgba(70, 43, 78, 0.45);
+  color: #eddce8;
+}
+
+.arcana-message-reading-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+.arcana-message-reading-action:hover:not(:disabled) {
+  background: rgba(88, 52, 95, 0.58);
+}
+
+.arcana-message-reading-action:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.arcana-conversation-reading-recommendation {
+  margin: 0 34px 24px;
+  padding: 24px;
+  border: 1px solid rgba(126, 82, 136, 0.82);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 92% 6%, rgba(198, 145, 100, 0.1), transparent 16rem),
+    linear-gradient(145deg, rgba(30, 22, 42, 0.97), rgba(12, 12, 27, 0.97));
+}
+
+.arcana-conversation-reading-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.arcana-conversation-reading-heading > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #d5a16f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.arcana-conversation-reading-heading > div > span svg {
+  width: 15px;
+  height: 15px;
+}
+
+.arcana-conversation-reading-heading h2 {
+  margin: 8px 0 0;
+  color: #f0dfcf;
+  font-family: var(--heading-font);
+  font-size: 27px;
+}
+
+.arcana-conversation-reading-heading p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: #aea3af;
+  font-family: var(--heading-font);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.arcana-conversation-reading-heading > strong {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid #54435b;
+  border-radius: 999px;
+  color: #d6c1cd;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.arcana-conversation-reading-positions {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.arcana-conversation-reading-positions > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  padding: 11px 12px;
+  border: 1px solid #342f43;
+  border-radius: 10px;
+  background: rgba(9, 10, 23, 0.55);
+}
+
+.arcana-conversation-reading-positions > div > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #6b4b6f;
+  border-radius: 50%;
+  color: #dbad7c;
+  font-family: var(--heading-font);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.arcana-conversation-reading-positions strong {
+  color: #e8dce4;
+  font-family: var(--heading-font);
+  font-size: 14px;
+}
+
+.arcana-conversation-reading-positions p {
+  margin: 4px 0 0;
+  color: #99919f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.arcana-conversation-reading-reason {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid #352f42;
+}
+
+.arcana-conversation-reading-reason span {
+  color: #c797b5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.arcana-conversation-reading-reason p {
+  margin: 6px 0 0;
+  color: #c4b8c2;
+  font-family: var(--heading-font);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.arcana-conversation-reading-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.arcana-reading-secondary-button {
+  border: 1px solid #474253;
+  background: transparent;
+  color: #bdb4c0;
+}
+
+.arcana-reading-primary-button {
+  border: 1px solid #8b5e78;
+  background: linear-gradient(135deg, #6e405e, #4a2b53);
+  color: #fff2e7;
+}
+
+.arcana-reading-primary-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.arcana-reading-secondary-button:disabled,
+.arcana-reading-primary-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .arcana-thread-reading-buttons,
+  .arcana-conversation-reading-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .arcana-thread-reading-buttons a,
+  .arcana-thread-reading-buttons button,
+  .arcana-conversation-reading-controls button {
+    width: 100%;
+  }
+
+  .arcana-conversation-reading-recommendation {
+    margin-right: 20px;
+    margin-left: 20px;
+    padding: 19px;
+  }
+
+  .arcana-conversation-reading-heading {
+    flex-direction: column;
+  }
+}

@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+from pydantic import ValidationError
 
 from app.models.spread_recommendations import (
     GeneratedSpread,
@@ -97,3 +98,37 @@ def test_recommend_spread_accepts_valid_custom_spread() -> None:
     result = asyncio.run(service.recommend_spread(create_request()))
 
     assert result == response
+
+
+def test_spread_recommendation_request_accepts_conversation_context() -> None:
+    request = SpreadRecommendationRequest(
+        conversation_messages=[
+            {
+                "role": "user",
+                "content": "I am torn between staying and leaving my job.",
+            },
+            {
+                "role": "assistant",
+                "content": "It sounds like security and fulfillment are competing.",
+            },
+        ],
+        spreads=create_request().spreads,
+    )
+
+    assert request.situation is None
+    assert request.conversation_messages is not None
+    assert len(request.conversation_messages) == 2
+
+
+def test_spread_recommendation_request_rejects_two_context_modes() -> None:
+    with pytest.raises(ValidationError):
+        SpreadRecommendationRequest(
+            situation="I am deciding whether to leave my job.",
+            conversation_messages=[
+                {
+                    "role": "user",
+                    "content": "I am deciding whether to leave my job.",
+                }
+            ],
+            spreads=create_request().spreads,
+        )

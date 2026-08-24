@@ -1,5 +1,6 @@
 import type {
   Conversation,
+  CreateConversationReadingRequest,
   CreateConversationRequest,
   CreateReadingRequest,
   PagedConversationsResponse,
@@ -400,4 +401,70 @@ export async function generateConversationInterpretation(
   }
 
   return (await response.json()) as ReadingInterpretation;
+}
+
+
+/** Reuses the guided spread recommender against the latest persisted conversation context. */
+export async function recommendConversationReading(
+  conversationId: string,
+): Promise<SpreadRecommendation> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations/${encodeURIComponent(conversationId)}/reading-recommendation`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      throw new Error(await readErrorResponse(response));
+    }
+
+    if (response.status === 404) {
+      throw new Error("This conversation could not be found.");
+    }
+
+    if (response.status === 503) {
+      throw new Error("Arcana is temporarily unavailable. Please try again in a moment.");
+    }
+
+    if (response.status === 502) {
+      throw new Error("Arcana could not design a reading for this conversation right now.");
+    }
+
+    throw new Error(await readErrorResponse(response));
+  }
+
+  return (await response.json()) as SpreadRecommendation;
+}
+
+/** Creates a reading from a conversation-approved spread and links both resources. */
+export async function createConversationReading(
+  conversationId: string,
+  request: CreateConversationReadingRequest,
+): Promise<Reading> {
+  const baseUrl = requireApiBaseUrl();
+  const response = await fetch(
+    `${baseUrl}/api/conversations/${encodeURIComponent(conversationId)}/readings`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      throw new Error(await readErrorResponse(response));
+    }
+
+    if (response.status === 404) {
+      throw new Error("This conversation could not be found.");
+    }
+
+    throw new Error(`Failed to create the reading. ${await readErrorResponse(response)}`);
+  }
+
+  return (await response.json()) as Reading;
 }

@@ -8,7 +8,8 @@ public sealed record ReadingDetails(
     IReadOnlyCollection<ReadingCardDetails> Cards,
     DateTimeOffset CreatedAtUtc,
     string SpreadDescription = "",
-    bool IsCustomSpread = false
+    bool IsCustomSpread = false,
+    Guid? SourceConversationId = null
 );
 
 public sealed record ReadingCardDetails(

@@ -61,6 +61,9 @@ public sealed class TarotDbContext : DbContext
                 .HasColumnName("is_custom_spread")
                 .IsRequired();
 
+            entity.Property(reading => reading.SourceConversationId)
+                .HasColumnName("source_conversation_id");
+
             entity.Property(reading => reading.CreatedAtUtc)
                 .HasColumnName("created_at_utc")
                 .IsRequired();
@@ -78,6 +81,14 @@ public sealed class TarotDbContext : DbContext
             entity.HasMany(reading => reading.Conversations)
                 .WithOne(conversation => conversation.Reading)
                 .HasForeignKey(conversation => conversation.ReadingId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(reading => reading.SourceConversationId)
+                .IsUnique();
+
+            entity.HasOne(reading => reading.SourceConversation)
+                .WithMany()
+                .HasForeignKey(reading => reading.SourceConversationId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -329,6 +340,10 @@ public sealed class TarotDbContext : DbContext
             entity.Property(message => message.Content)
                 .HasColumnName("content")
                 .IsRequired();
+
+            entity.Property(message => message.SuggestedAction)
+                .HasColumnName("suggested_action")
+                .HasMaxLength(30);
 
             entity.Property(message => message.CreatedAtUtc)
                 .HasColumnName("created_at_utc")
