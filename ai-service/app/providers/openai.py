@@ -15,6 +15,7 @@ from app.prompts.interpretation import (
     INTERPRETATION_SYSTEM_INSTRUCTIONS,
     build_interpretation_input,
 )
+from app.knowledge.retriever import TarotKnowledgeRetriever
 from app.providers.base import (
     InterpretationProviderResponseError,
     InterpretationProviderUnavailableError,
@@ -27,20 +28,27 @@ class OpenAIInterpretationProvider:
         client: AsyncOpenAI,
         model: str,
         max_output_tokens: int,
+        knowledge_retriever: TarotKnowledgeRetriever | None = None,
     ) -> None:
         self._client = client
         self._model = model
         self._max_output_tokens = max_output_tokens
+        self._knowledge_retriever = knowledge_retriever
 
     async def interpret(
         self,
         request: InterpretationRequest,
     ) -> InterpretationResponse:
         try:
+            knowledge_chunks = (
+                await self._knowledge_retriever.retrieve_for_interpretation(request)
+                if self._knowledge_retriever is not None
+                else []
+            )
             response = await self._client.responses.parse(
                 model=self._model,
                 instructions=INTERPRETATION_SYSTEM_INSTRUCTIONS,
-                input=build_interpretation_input(request),
+                input=build_interpretation_input(request, knowledge_chunks),
                 text_format=InterpretationResponse,
                 max_output_tokens=self._max_output_tokens,
                 store=False,

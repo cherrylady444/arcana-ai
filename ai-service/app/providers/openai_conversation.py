@@ -16,6 +16,7 @@ from app.providers.conversation_base import (
     ConversationProviderResponseError,
     ConversationProviderUnavailableError,
 )
+from app.knowledge.retriever import TarotKnowledgeRetriever
 
 
 class OpenAIConversationProvider:
@@ -24,20 +25,30 @@ class OpenAIConversationProvider:
         client: AsyncOpenAI,
         model: str,
         max_output_tokens: int,
+        knowledge_retriever: TarotKnowledgeRetriever | None = None,
     ) -> None:
         self._client = client
         self._model = model
         self._max_output_tokens = max_output_tokens
+        self._knowledge_retriever = knowledge_retriever
 
     async def respond(
         self,
         request: ConversationResponseRequest,
     ) -> ConversationResponse:
         try:
+            knowledge_chunks = (
+                await self._knowledge_retriever.retrieve_for_conversation(request)
+                if self._knowledge_retriever is not None
+                else []
+            )
             response = await self._client.responses.parse(
                 model=self._model,
                 instructions=CONVERSATION_SYSTEM_INSTRUCTIONS,
-                input=build_conversation_input(request),
+                input=build_conversation_input(
+                    request,
+                    knowledge_chunks,
+                ),
                 text_format=ConversationResponse,
                 max_output_tokens=self._max_output_tokens,
                 store=False,

@@ -1,0 +1,19 @@
+{
+  "key": "the-sun",
+  "name": "The Sun",
+  "arcana": "Major Arcana",
+  "suit": null,
+  "keywords": [
+    "joy",
+    "vitality",
+    "success",
+    "clarity",
+    "confidence"
+  ],
+  "attributes": [
+    "Sun",
+    "Fire"
+  ],
+  "upright": "At its core, The Sun speaks to joy, vitality, success, clarity, and confidence. In a reading, this card describes an energy, pattern, resource, challenge, or invitation that should be interpreted through the specific spread position and the user's context. Treat it as reflective guidance rather than a fixed prediction, and consider how its themes interact with the surrounding cards.",
+  "reversed": "Reversed, The Sun draws attention to temporary doubt, reduced clarity, delayed success, or needing to reclaim optimism. The reversal may show the card's core energy being blocked, delayed, internalized, overexpressed, or approached from an unhelpful angle rather than simply meaning the opposite of the upright card. Use the spread position and surrounding cards to decide which nuance is most relevant."
+}

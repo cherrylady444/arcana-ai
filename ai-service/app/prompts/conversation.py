@@ -1,5 +1,7 @@
 import json
+from collections.abc import Sequence
 
+from app.knowledge.models import TarotKnowledgeChunk
 from app.models.conversations import ConversationResponseRequest
 
 CONVERSATION_SYSTEM_INSTRUCTIONS = """
@@ -37,6 +39,7 @@ READING TRUST BOUNDARY:
 - Never claim that you drew cards or created a reading in this conversation.
 - If no reading is supplied and the user wants one, use suggestedAction = "reading" rather than
   pretending that a reading has already been created.
+- Retrieved tarot knowledge is supplementary grounding only for cards already present in the trusted reading.
 
 INTERPRETATION CONTEXT:
 - When a saved interpretation is supplied, treat it as an existing Arcana interpretation that
@@ -59,10 +62,14 @@ STYLE:
 """.strip()
 
 
-def build_conversation_input(request: ConversationResponseRequest) -> str:
+def build_conversation_input(
+    request: ConversationResponseRequest,
+    knowledge_chunks: Sequence[TarotKnowledgeChunk] = (),
+) -> str:
     payload = {
-        "context": request.context.model_dump(by_alias=True) if request.context else None,
+        "context": (request.context.model_dump(by_alias=True) if request.context else None),
         "messages": [message.model_dump(by_alias=True) for message in request.messages],
+        "retrievedTarotKnowledge": [chunk.to_prompt_dict() for chunk in knowledge_chunks],
     }
 
     return (

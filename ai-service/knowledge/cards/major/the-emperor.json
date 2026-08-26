@@ -1,0 +1,19 @@
+{
+  "key": "the-emperor",
+  "name": "The Emperor",
+  "arcana": "Major Arcana",
+  "suit": null,
+  "keywords": [
+    "structure",
+    "authority",
+    "discipline",
+    "stability",
+    "responsibility"
+  ],
+  "attributes": [
+    "Aries",
+    "Fire"
+  ],
+  "upright": "At its core, The Emperor speaks to structure, authority, discipline, stability, and responsibility. In a reading, this card describes an energy, pattern, resource, challenge, or invitation that should be interpreted through the specific spread position and the user's context. Treat it as reflective guidance rather than a fixed prediction, and consider how its themes interact with the surrounding cards.",
+  "reversed": "Reversed, The Emperor draws attention to rigidity, control issues, weak boundaries, or misuse of authority. The reversal may show the card's core energy being blocked, delayed, internalized, overexpressed, or approached from an unhelpful angle rather than simply meaning the opposite of the upright card. Use the spread position and surrounding cards to decide which nuance is most relevant."
+}

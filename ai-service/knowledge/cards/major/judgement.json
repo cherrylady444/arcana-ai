@@ -1,0 +1,19 @@
+{
+  "key": "judgement",
+  "name": "Judgement",
+  "arcana": "Major Arcana",
+  "suit": null,
+  "keywords": [
+    "awakening",
+    "reflection",
+    "calling",
+    "renewal",
+    "self-evaluation"
+  ],
+  "attributes": [
+    "Pluto",
+    "Fire"
+  ],
+  "upright": "At its core, Judgement speaks to awakening, reflection, calling, renewal, and self-evaluation. In a reading, this card describes an energy, pattern, resource, challenge, or invitation that should be interpreted through the specific spread position and the user's context. Treat it as reflective guidance rather than a fixed prediction, and consider how its themes interact with the surrounding cards.",
+  "reversed": "Reversed, Judgement draws attention to self-judgment, ignoring a call, avoidance of reflection, or fear of renewal. The reversal may show the card's core energy being blocked, delayed, internalized, overexpressed, or approached from an unhelpful angle rather than simply meaning the opposite of the upright card. Use the spread position and surrounding cards to decide which nuance is most relevant."
+}

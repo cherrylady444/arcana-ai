@@ -1,0 +1,18 @@
+{
+  "key": "the-magician",
+  "name": "The Magician",
+  "arcana": "Major Arcana",
+  "suit": null,
+  "keywords": [
+    "skill",
+    "intention",
+    "focus",
+    "turning possibility into action"
+  ],
+  "attributes": [
+    "Mercury",
+    "Air"
+  ],
+  "upright": "At its core, The Magician speaks to skill, intention, focus, and turning possibility into action. In a reading, this card describes an energy, pattern, resource, challenge, or invitation that should be interpreted through the specific spread position and the user's context. Treat it as reflective guidance rather than a fixed prediction, and consider how its themes interact with the surrounding cards.",
+  "reversed": "Reversed, The Magician draws attention to manipulation, scattered focus, unused talent, or blocked manifestation. The reversal may show the card's core energy being blocked, delayed, internalized, overexpressed, or approached from an unhelpful angle rather than simply meaning the opposite of the upright card. Use the spread position and surrounding cards to decide which nuance is most relevant."
+}
