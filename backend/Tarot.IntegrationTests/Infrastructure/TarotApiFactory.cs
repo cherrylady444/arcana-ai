@@ -28,6 +28,9 @@ public sealed class TarotApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
+        builder.UseSetting("Security:Enabled", "false");
+
         /*
          * Program.cs reads DefaultConnection while building the application.
          * Supplying the Testcontainers connection string here ensures even the

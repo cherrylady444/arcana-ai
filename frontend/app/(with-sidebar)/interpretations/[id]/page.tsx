@@ -13,7 +13,7 @@ import {
   getInterpretationById,
   getReadingById,
   getReadingInterpretations,
-} from "@/lib/api";
+} from "@/lib/api.server";
 
 type InterpretationDetailsPageProps = {
   params: Promise<{

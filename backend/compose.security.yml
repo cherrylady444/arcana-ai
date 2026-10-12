@@ -1,0 +1,39 @@
+# Use with backend/docker-compose.yml; keep its existing PostgreSQL volume identity.
+services:
+  keycloak-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run scripts/sec1-setup.py first}
+    volumes:
+      - arcana_keycloak_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run scripts/sec1-setup.py first}
+      KC_HOSTNAME: http://localhost:8081
+      KC_BOOTSTRAP_ADMIN_USERNAME: arcana-admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Run scripts/sec1-setup.py first}
+      ARCANA_CLIENT_SECRET: ${Security__ClientSecret:?Run scripts/sec1-setup.py first}
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./keycloak/arcana-realm.json:/opt/keycloak/data/import/arcana-realm.json:ro
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+
+volumes:
+  arcana_keycloak_data:

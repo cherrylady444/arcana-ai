@@ -6,7 +6,7 @@ import {
   getConversationById,
   getInterpretationById,
   getReadingById,
-} from "@/lib/api";
+} from "@/lib/api.server";
 
 type ConversationPageProps = {
   params: Promise<{ id: string }>;

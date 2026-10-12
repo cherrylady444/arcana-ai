@@ -9,7 +9,7 @@ public static class SpreadEndpoints
     public static IEndpointRouteBuilder MapSpreadEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/spreads");
+        var group = endpoints.MapGroup("/api/spreads").AllowAnonymous();
 
         group.MapGet("/", GetSpreadSummaries);
         group.MapGet("/{spreadKey}", GetSpreadDetails);

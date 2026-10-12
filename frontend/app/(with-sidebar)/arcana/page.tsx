@@ -4,7 +4,7 @@ import {
   getConversations,
   getInterpretationById,
   getReadingById,
-} from "@/lib/api";
+} from "@/lib/api.server";
 
 type TalkToArcanaPageProps = {
   searchParams: Promise<{

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { BrandMarkIcon } from "@/components/icons/ArcanaIcons";
 import { CreateReadingForm } from "@/components/readings/CreateReadingForm";
-import { getSpreadByKey } from "@/lib/api";
+import { getSpreadByKey } from "@/lib/api.server";
 
 type SpreadDetailPageProps = {
   params: Promise<{

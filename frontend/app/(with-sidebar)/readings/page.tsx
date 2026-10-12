@@ -1,5 +1,5 @@
 import { ReadingHistory } from "@/components/readings/ReadingHistory";
-import { getReadings } from "@/lib/api";
+import { getReadings } from "@/lib/api.server";
 
 type ReadingsPageProps = {
   searchParams: Promise<{

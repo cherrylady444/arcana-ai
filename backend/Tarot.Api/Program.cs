@@ -1,3 +1,4 @@
+using Tarot.Api.Security;
 using Serilog;
 
 using Tarot.Api.Endpoints;
@@ -15,8 +16,6 @@ using Tarot.Infrastructure.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
-
 builder.Host.UseSerilog((context, configuration) =>
 {
     configuration
@@ -26,25 +25,13 @@ builder.Host.UseSerilog((context, configuration) =>
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
-
 // PostgreSQL connection. In Docker Compose, the environment variable
 // ConnectionStrings__DefaultConnection overrides local appsettings values.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' is not configured.");
+
+var securityEnabled = builder.AddArcanaSecurity(connectionString);
 
 builder.Services.AddDbContext<TarotDbContext>(options =>
 {
@@ -163,15 +150,33 @@ if (builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
     app.Logger.LogInformation("Database migrations applied successfully.");
 }
 
-app.UseCors("Frontend");
+if (securityEnabled)
+{
+    // Apply even to failed authentication and OIDC callbacks handled early.
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers.Pragma = "no-cache";
+        context.Response.Headers["Referrer-Policy"] = "no-referrer";
+        await next();
+    });
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
+if (securityEnabled)
+{
+    app.UseMiddleware<BrowserSecurityMiddleware>();
+    app.MapAuthEndpoints();
+}
 
 app.MapGet("/", () => Results.Ok(new
 {
     service = "tarot-backend",
     status = "ok"
-}));
+})).AllowAnonymous();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.MapSpreadEndpoints();
 app.MapSpreadRecommendationEndpoints();

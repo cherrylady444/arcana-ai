@@ -10,7 +10,7 @@ import {
 } from "@/components/icons/ArcanaIcons";
 import { InterpretWithArcanaButton } from "@/components/interpretations/InterpretWithArcanaButton";
 import { ReadingCardArtwork } from "@/components/readings/ReadingCardArtwork";
-import { getReadingById, getReadingInterpretations } from "@/lib/api";
+import { getReadingById, getReadingInterpretations } from "@/lib/api.server";
 
 type ReadingInterpretationsPageProps = {
   params: Promise<{

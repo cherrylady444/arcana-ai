@@ -130,6 +130,8 @@ export function AppShell({ children }: AppShellProps) {
           </Link>
         </nav>
 
+        <Link href="/account" className="sidebar-nav-link" onClick={closeSidebar}>Account</Link>
+
         <div className="sidebar-artwork" aria-hidden="true">
           <SidebarLandscape />
         </div>

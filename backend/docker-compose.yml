@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: arcana_user
       POSTGRES_PASSWORD: arcana_password
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - arcana_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +31,7 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=arcana_ai;Username=arcana_user;Password=arcana_password
       Database__ApplyMigrationsOnStartup: "true"
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: anamaria.izbas@gmail.com
       PGADMIN_DEFAULT_PASSWORD: admin_password
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     volumes:
       - arcana_pgadmin_data:/var/lib/pgadmin
     depends_on:

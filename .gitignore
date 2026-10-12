@@ -40,3 +40,6 @@ docker-data/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+# Local authentication secrets and Data Protection keys
+.security-keys/
+.security/

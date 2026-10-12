@@ -12,7 +12,7 @@ import {
   SpreadIcon,
 } from "@/components/icons/ArcanaIcons";
 import { ReadingCardArtwork } from "@/components/readings/ReadingCardArtwork";
-import { getReadingById } from "@/lib/api";
+import { getReadingById } from "@/lib/api.server";
 
 type ReadingDetailsPageProps = {
   params: Promise<{

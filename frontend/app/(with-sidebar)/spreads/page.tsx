@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "@/components/icons/ArcanaIcons";
 import { SpreadCatalog } from "@/components/spreads/SpreadCatalog";
-import { getSpreads } from "@/lib/api";
+import { getSpreads } from "@/lib/api.server";
 
 export default async function SpreadsPage() {
   const spreads = await getSpreads();
