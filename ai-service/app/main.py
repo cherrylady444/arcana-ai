@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, Depends, FastAPI
+
+from app.ai_auth import require_ai_pass
 
 from app.routers.conversations import router as conversations_router
 from app.routers.interpretations import router as interpretations_router
@@ -10,9 +12,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
-app.include_router(interpretations_router)
-app.include_router(conversations_router)
-app.include_router(spread_recommendations_router)
+protected = APIRouter(dependencies=[Depends(require_ai_pass)])
+protected.include_router(interpretations_router)
+protected.include_router(conversations_router)
+protected.include_router(spread_recommendations_router)
+app.include_router(protected)
 
 
 @app.get("/health", tags=["Health"])

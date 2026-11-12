@@ -3,6 +3,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from app.ai_auth import require_ai_pass
 from app.dependencies import get_interpretation_service
 from app.main import app
 from app.providers.fake import FakeInterpretationProvider
@@ -16,9 +17,11 @@ def client() -> Iterator[TestClient]:
 
     app.dependency_overrides[get_interpretation_service] = override_interpretation_service
 
+    app.dependency_overrides[require_ai_pass] = lambda: None  # Route contract tests only.
     with TestClient(app) as test_client:
         yield test_client
 
+    app.dependency_overrides.pop(require_ai_pass)
     app.dependency_overrides.pop(
         get_interpretation_service,
         None,

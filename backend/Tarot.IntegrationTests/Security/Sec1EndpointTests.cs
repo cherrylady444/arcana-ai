@@ -151,6 +151,7 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
             builder.UseSetting("ConnectionStrings:DefaultConnection", connectionString);
             builder.UseSetting("Database:ApplyMigrationsOnStartup", "false");
             builder.UseSetting("Security:Enabled", "true");
+            builder.UseSetting("AiService:BaseUrl", "https://python.test");
             builder.UseSetting("Security:Authority", "https://keycloak.test/realms/arcana");
             builder.UseSetting("Security:PublicOrigin", "https://arcana.test");
             builder.UseSetting("Security:ClientSecret", new string('x', 64));
@@ -192,7 +193,8 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
             var principal = new ClaimsPrincipal(new ClaimsIdentity(
                 [new Claim("sub", subject, ClaimValueTypes.String, TestOwner.Value.Issuer), new Claim(ClaimTypes.NameIdentifier, subject)], "test"));
             var properties = new AuthenticationProperties();
-            properties.StoreTokens([new AuthenticationToken { Name = "refresh_token", Value = "test-refresh" }]);
+            properties.StoreTokens([new AuthenticationToken { Name = "access_token", Value = "access-" + subject },
+                new AuthenticationToken { Name = "refresh_token", Value = "test-refresh" }]);
             return new AuthenticationTicket(principal, properties, ArcanaSecurityOptions.CookieScheme);
         }
 

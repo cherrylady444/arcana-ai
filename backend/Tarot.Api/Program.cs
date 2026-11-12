@@ -97,30 +97,31 @@ builder.Services.AddScoped<IGenerateReadingInterpretationService,
 builder.Services.AddScoped<IGenerateConversationInterpretationService,
     GenerateConversationInterpretationService>();
 
-builder.Services.AddHttpClient<IReadingInterpreter,
-    PythonReadingInterpreterClient>(client =>
+if (securityEnabled && aiServiceBaseUri.Scheme != "https" &&
+    !(builder.Environment.IsDevelopment() && aiServiceBaseUri.IsLoopback))
+    throw new InvalidOperationException("Use HTTPS for AI, except on the local development loopback.");
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<AiExchangeHandler>();
+builder.Services.AddHttpClient("AiTokenExchange", c => c.Timeout = TimeSpan.FromSeconds(8))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
+
+void ConfigureAi(HttpClient client)
 {
     client.BaseAddress = aiServiceBaseUri;
-    client.Timeout = TimeSpan.FromSeconds(
-        aiServiceTimeoutSeconds);
-});
+    client.Timeout = TimeSpan.FromSeconds(aiServiceTimeoutSeconds);
+}
 
-builder.Services.AddHttpClient<ISpreadRecommender,
-    PythonSpreadRecommenderClient>(client =>
+foreach (var ai in new[]
 {
-    client.BaseAddress = aiServiceBaseUri;
-    client.Timeout = TimeSpan.FromSeconds(
-        aiServiceTimeoutSeconds);
-});
-
-
-builder.Services.AddHttpClient<IConversationResponder,
-    PythonConversationResponderClient>(client =>
+    builder.Services.AddHttpClient<IReadingInterpreter, PythonReadingInterpreterClient>(ConfigureAi),
+    builder.Services.AddHttpClient<ISpreadRecommender, PythonSpreadRecommenderClient>(ConfigureAi),
+    builder.Services.AddHttpClient<IConversationResponder, PythonConversationResponderClient>(ConfigureAi)
+})
 {
-    client.BaseAddress = aiServiceBaseUri;
-    client.Timeout = TimeSpan.FromSeconds(
-        aiServiceTimeoutSeconds);
-});
+    ai.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false });
+    ai.AddHttpMessageHandler<AiExchangeHandler>();
+}
 
 builder.Services.AddScoped<
     IReadingInterpretationRepository,
