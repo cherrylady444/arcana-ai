@@ -6,19 +6,27 @@ namespace Tarot.Infrastructure.Persistence.Repositories;
 
 public sealed class PostgresReadingRepository : IReadingRepository
 {
+    private readonly ResourceOwner _owner;
     private readonly TarotDbContext _dbContext;
 
-    public PostgresReadingRepository(TarotDbContext dbContext)
+    public PostgresReadingRepository(TarotDbContext dbContext, ResourceOwner owner)
     {
         _dbContext = dbContext;
+        _owner = owner;
     }
 
     public async Task SaveAsync(
         CreateReadingResult reading,
         CancellationToken cancellationToken = default)
     {
+        if (reading.SourceConversationId is Guid source && !await _dbContext.Conversations.OwnedBy(_owner)
+                .AnyAsync(c => c.Id == source, cancellationToken))
+            throw new InvalidOperationException("Reading context is unavailable.");
+
         var entity = new ReadingEntity
         {
+            OwnerIssuer = _owner.Issuer,
+            OwnerSubject = _owner.Subject,
             Id = reading.Id,
             UserContext = reading.UserContext,
             SpreadKey = reading.SpreadKey,
@@ -60,7 +68,7 @@ public sealed class PostgresReadingRepository : IReadingRepository
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.Readings
+        var entity = await _dbContext.Readings.OwnedBy(_owner)
             .AsNoTracking() // We don't need to track the entity since we are only reading it
             .Include(reading => reading.Cards)
             
@@ -109,7 +117,7 @@ public sealed class PostgresReadingRepository : IReadingRepository
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Readings
+        var query = _dbContext.Readings.OwnedBy(_owner)
             .AsNoTracking();
 
         var totalCount = await query.CountAsync(cancellationToken);

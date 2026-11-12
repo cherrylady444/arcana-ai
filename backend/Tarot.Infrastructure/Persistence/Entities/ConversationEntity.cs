@@ -2,6 +2,9 @@ namespace Tarot.Infrastructure.Persistence.Entities;
 
 public sealed class ConversationEntity
 {
+    public string? OwnerIssuer { get; set; }
+    public string? OwnerSubject { get; set; }
+
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
 

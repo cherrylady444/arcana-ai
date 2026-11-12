@@ -10,6 +10,6 @@ export Security__ClientSecret Security__Authority Security__PublicOrigin Securit
 export ASPNETCORE_ENVIRONMENT
 unset KEYCLOAK_ADMIN_PASSWORD KEYCLOAK_DB_PASSWORD
 cd "$task_root/backend"
-# This forward-only migration adds the session table; no application rows change.
+# Apply pending EF migrations before starting the API.
 dotnet ef database update --project Tarot.Infrastructure --startup-project Tarot.Api
 exec dotnet run --project Tarot.Api --no-launch-profile

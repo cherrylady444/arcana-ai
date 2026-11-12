@@ -57,6 +57,7 @@ public sealed class TarotApiFactory : WebApplicationFactory<Program>
              * the production registration cannot continue contributing its
              * Npgsql connection configuration in the test host.
              */
+            services.AddSingleton(TestOwner.Value);
             services.RemoveAll<TarotDbContext>();
             services.RemoveAll<DbContextOptions<TarotDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<TarotDbContext>>();

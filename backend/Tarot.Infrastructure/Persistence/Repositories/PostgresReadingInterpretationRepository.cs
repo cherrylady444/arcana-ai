@@ -7,18 +7,25 @@ namespace Tarot.Infrastructure.Persistence.Repositories;
 public sealed class PostgresReadingInterpretationRepository
     : IReadingInterpretationRepository
 {
+    private readonly ResourceOwner _owner;
     private readonly TarotDbContext _dbContext;
 
     public PostgresReadingInterpretationRepository(
-        TarotDbContext dbContext)
+        TarotDbContext dbContext, ResourceOwner owner)
     {
         _dbContext = dbContext;
+        _owner = owner;
     }
 
     public async Task SaveAsync(
         ReadingInterpretationDetails interpretation,
         CancellationToken cancellationToken = default)
     {
+        if (!await _dbContext.Readings.OwnedBy(_owner).AnyAsync(r => r.Id == interpretation.ReadingId, cancellationToken)
+            || (interpretation.SourceConversationId is Guid source && !await _dbContext.Conversations.OwnedBy(_owner)
+                .AnyAsync(c => c.Id == source && c.ReadingId == interpretation.ReadingId, cancellationToken)))
+            throw new InvalidOperationException("Interpretation context is unavailable.");
+
         var entity = new ReadingInterpretationEntity
         {
             Id = interpretation.Id,
@@ -62,7 +69,7 @@ public sealed class PostgresReadingInterpretationRepository
         Guid interpretationId,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.ReadingInterpretations
+        var entity = await _dbContext.ReadingInterpretations.OwnedBy(_owner)
             .AsNoTracking()
             .AsSplitQuery()
             .Include(
@@ -86,7 +93,7 @@ public sealed class PostgresReadingInterpretationRepository
         Guid interpretationId,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.ReadingInterpretations
+        var entity = await _dbContext.ReadingInterpretations.OwnedBy(_owner)
             .AsNoTracking()
             .AsSplitQuery()
             .Include(
@@ -111,7 +118,7 @@ public sealed class PostgresReadingInterpretationRepository
             Guid readingId,
             CancellationToken cancellationToken = default)
     {
-        var entities = await _dbContext.ReadingInterpretations
+        var entities = await _dbContext.ReadingInterpretations.OwnedBy(_owner)
             .AsNoTracking()
             .AsSplitQuery()
             .Include(

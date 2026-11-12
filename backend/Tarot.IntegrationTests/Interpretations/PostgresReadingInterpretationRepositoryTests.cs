@@ -92,7 +92,7 @@ public sealed class PostgresReadingInterpretationRepositoryTests :
 
             var repository =
                 new PostgresReadingInterpretationRepository(
-                    saveDbContext);
+                    saveDbContext, TestOwner.Value);
 
             await repository.SaveAsync(interpretation);
         }
@@ -106,7 +106,7 @@ public sealed class PostgresReadingInterpretationRepositoryTests :
 
         var readRepository =
             new PostgresReadingInterpretationRepository(
-                readDbContext);
+                readDbContext, TestOwner.Value);
 
         var result = await readRepository.GetByIdAsync(
             readingId,
@@ -215,7 +215,7 @@ public sealed class PostgresReadingInterpretationRepositoryTests :
 
             var repository =
                 new PostgresReadingInterpretationRepository(
-                    saveDbContext);
+                    saveDbContext, TestOwner.Value);
 
             /*
              * Save deliberately out of chronological order.
@@ -232,7 +232,7 @@ public sealed class PostgresReadingInterpretationRepositoryTests :
 
         var readRepository =
             new PostgresReadingInterpretationRepository(
-                readDbContext);
+                readDbContext, TestOwner.Value);
 
         var result = await readRepository.GetByReadingIdAsync(
             firstReadingId);
@@ -266,6 +266,8 @@ public sealed class PostgresReadingInterpretationRepositoryTests :
     {
         return new ReadingEntity
         {
+            OwnerIssuer = TestOwner.Value.Issuer,
+            OwnerSubject = TestOwner.Value.Subject,
             Id = readingId,
             UserContext =
                 "Integration-test context for interpretation persistence.",

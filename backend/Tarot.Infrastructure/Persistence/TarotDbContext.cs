@@ -36,6 +36,11 @@ public sealed class TarotDbContext : DbContext
         modelBuilder.Entity<ReadingEntity>(entity =>
         {
             entity.ToTable("readings");
+            entity.Property(x => x.OwnerIssuer).HasColumnName("owner_issuer");
+            entity.Property(x => x.OwnerSubject).HasColumnName("owner_subject");
+            entity.HasIndex(x => new { x.OwnerIssuer, x.OwnerSubject, x.CreatedAtUtc, x.Id })
+                .HasDatabaseName("ix_readings_owner_time");
+
 
             entity.Property(reading => reading.Id)
                 .HasColumnName("id");
@@ -279,6 +284,11 @@ public sealed class TarotDbContext : DbContext
         modelBuilder.Entity<ConversationEntity>(entity =>
         {
             entity.ToTable("conversations");
+            entity.Property(x => x.OwnerIssuer).HasColumnName("owner_issuer");
+            entity.Property(x => x.OwnerSubject).HasColumnName("owner_subject");
+            entity.HasIndex(x => new { x.OwnerIssuer, x.OwnerSubject, x.UpdatedAtUtc, x.Id })
+                .HasDatabaseName("ix_conversations_owner_time");
+
 
             entity.Property(conversation => conversation.Id)
                 .HasColumnName("id");

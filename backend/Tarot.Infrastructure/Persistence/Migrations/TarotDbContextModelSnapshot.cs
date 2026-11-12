@@ -51,6 +51,17 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at_utc");
 
+                    b.Property<string>("OwnerIssuer")
+                        .HasColumnType("text")
+                        .HasColumnName("owner_issuer");
+
+                    b.Property<string>("OwnerSubject")
+                        .HasColumnType("text")
+                        .HasColumnName("owner_subject");
+
+                    b.HasIndex("OwnerIssuer", "OwnerSubject", "UpdatedAtUtc", "Id")
+                        .HasDatabaseName("ix_conversations_owner_time");
+
                     b.HasKey("Id");
 
                     b.HasIndex("InterpretationId");
@@ -220,6 +231,17 @@ namespace Tarot.Infrastructure.Persistence.Migrations
                     b.Property<string>("UserContext")
                         .HasColumnType("text")
                         .HasColumnName("user_context");
+
+                    b.Property<string>("OwnerIssuer")
+                        .HasColumnType("text")
+                        .HasColumnName("owner_issuer");
+
+                    b.Property<string>("OwnerSubject")
+                        .HasColumnType("text")
+                        .HasColumnName("owner_subject");
+
+                    b.HasIndex("OwnerIssuer", "OwnerSubject", "CreatedAtUtc", "Id")
+                        .HasDatabaseName("ix_readings_owner_time");
 
                     b.HasKey("Id");
 

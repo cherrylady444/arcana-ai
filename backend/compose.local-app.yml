@@ -1,0 +1,51 @@
+# Overlay the two existing backend compose files, preserving their named volumes.
+services:
+  postgres:
+    restart: unless-stopped
+  keycloak-postgres:
+    restart: unless-stopped
+  keycloak:
+    restart: unless-stopped
+
+  local-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.local-app
+    network_mode: host
+    restart: unless-stopped
+    user: "${ARCANA_UID:?}:${ARCANA_GID:?}"
+    environment:
+      HOME: /tmp
+      ASPNETCORE_ENVIRONMENT: Development
+      URLS: http://127.0.0.1:5000
+      Database__ApplyMigrationsOnStartup: "true"
+      Security__ClientSecret: ${Security__ClientSecret:?missing SEC1 secret}
+      Security__Authority: ${Security__Authority:?missing SEC1 authority}
+      Security__PublicOrigin: ${Security__PublicOrigin:?missing SEC1 origin}
+      Security__AllowLoopbackHttp: "true"
+      Security__DataProtectionKeyPath: /keys
+    volumes:
+      - ./Tarot.Api/.security-keys:/keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  local-ai:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile.local-app
+    network_mode: host
+    restart: unless-stopped
+    env_file: ../ai-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  local-web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.local-app
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - local-api

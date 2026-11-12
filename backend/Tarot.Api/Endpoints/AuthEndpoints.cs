@@ -24,7 +24,7 @@ public static class AuthEndpoints
         // This endpoint is used by the frontend to get the current user's information.
         endpoints.MapGet("/auth/me", (HttpContext context) => Results.Ok(new
         {
-            subject = context.User.FindFirst("sub")?.Value,
+            subject = context.User.FindFirst("sub")?.Value, // account ID that /auth/me returned
             username = context.User.FindFirst("preferred_username")?.Value,
             name = context.User.FindFirst("name")?.Value,
             email = context.User.FindFirst("email")?.Value

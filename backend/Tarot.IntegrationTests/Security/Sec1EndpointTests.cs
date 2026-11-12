@@ -141,7 +141,7 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
         Assert.Null(await store.RetrieveAsync(key));
     }
 
-    private sealed class SecurityFactory(string connectionString) : WebApplicationFactory<Program>
+    internal sealed class SecurityFactory(string connectionString) : WebApplicationFactory<Program>
     {
         public string KeyPath { get; } = Path.Combine(Path.GetTempPath(), "arcana-security-" + Guid.NewGuid());
         public FakeRefreshHandler RefreshHandler { get; } = new();
@@ -171,7 +171,7 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
         }
     }
 
-    private sealed class FakeRefreshHandler : HttpMessageHandler
+    internal sealed class FakeRefreshHandler : HttpMessageHandler
     {
         public int Calls;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -187,10 +187,10 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
 
     private sealed class TestLoginFilter : IStartupFilter
     {
-        public static AuthenticationTicket CreateTicket()
+        public static AuthenticationTicket CreateTicket(string subject = "test-user")
         {
             var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                [new Claim("sub", "test-user"), new Claim(ClaimTypes.NameIdentifier, "test-user")], "test"));
+                [new Claim("sub", subject, ClaimValueTypes.String, TestOwner.Value.Issuer), new Claim(ClaimTypes.NameIdentifier, subject)], "test"));
             var properties = new AuthenticationProperties();
             properties.StoreTokens([new AuthenticationToken { Name = "refresh_token", Value = "test-refresh" }]);
             return new AuthenticationTicket(principal, properties, ArcanaSecurityOptions.CookieScheme);
@@ -200,9 +200,9 @@ public sealed class Sec1EndpointTests(PostgreSqlFixture database)
         {
             app.Use(async (context, proceed) =>
             {
-                if (context.Request.Path == "/test/login")
+                if (context.Request.Path == "/test/login" || context.Request.Path == "/test/login-second")
                 {
-                    var ticket = CreateTicket();
+                    var ticket = CreateTicket(context.Request.Path == "/test/login" ? "test-user" : "second-user");
                     await context.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
                     context.Response.StatusCode = 200;
                     return;

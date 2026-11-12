@@ -1,3 +1,4 @@
+using Tarot.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -22,6 +23,20 @@ public static class SecurityRegistration
         if (!enabled) return false;
 
         var settings = builder.Configuration.GetSection("Security").Get<ArcanaSecurityOptions>() ?? new();
+        var issuer = settings.Authority.TrimEnd('/');
+        ResourceOwner? ResolveOwner(System.Security.Claims.ClaimsPrincipal? user)
+        {
+            var subjects = user?.Identities.Where(identity => identity.IsAuthenticated)
+                .SelectMany(identity => identity.FindAll("sub"))
+                .Where(claim => claim.Issuer == issuer).Take(2).ToArray();
+            return subjects is { Length: 1 } && !string.IsNullOrWhiteSpace(subjects[0].Value)
+                ? new ResourceOwner(issuer, subjects[0].Value) : null;
+        }
+
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ResourceOwner>(sp =>
+            ResolveOwner(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.User)
+            ?? throw new InvalidOperationException("A validated account is required."));
         builder.Services.AddOptions<ArcanaSecurityOptions>()
             .Bind(builder.Configuration.GetSection("Security"))
             .Validate(o => o.IsValid(builder.Environment.IsDevelopment()),
@@ -153,7 +168,8 @@ public static class SecurityRegistration
         builder.Services.AddOptions<CookieAuthenticationOptions>(ArcanaSecurityOptions.CookieScheme)
             .Configure<ITicketStore>((options, store) => options.SessionStore = store);
         builder.Services.AddAuthorization(options => options.FallbackPolicy =
-            new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
+                .RequireAssertion(context => ResolveOwner(context.User) is not null).Build());
         builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-CSRF-TOKEN";

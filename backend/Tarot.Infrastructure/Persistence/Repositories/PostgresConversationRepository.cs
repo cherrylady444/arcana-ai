@@ -6,19 +6,29 @@ namespace Tarot.Infrastructure.Persistence.Repositories;
 
 public sealed class PostgresConversationRepository : IConversationRepository
 {
+    private readonly ResourceOwner _owner;
     private readonly TarotDbContext _dbContext;
 
-    public PostgresConversationRepository(TarotDbContext dbContext)
+    public PostgresConversationRepository(TarotDbContext dbContext, ResourceOwner owner)
     {
         _dbContext = dbContext;
+        _owner = owner;
     }
 
     public async Task SaveAsync(
         ConversationDetails conversation,
         CancellationToken cancellationToken = default)
     {
+        if ((conversation.ReadingId is Guid reading && !await _dbContext.Readings.OwnedBy(_owner)
+                .AnyAsync(r => r.Id == reading, cancellationToken))
+            || (conversation.InterpretationId is Guid interpretation && !await _dbContext.ReadingInterpretations.OwnedBy(_owner)
+                .AnyAsync(i => i.Id == interpretation && i.ReadingId == conversation.ReadingId, cancellationToken)))
+            throw new InvalidOperationException("Conversation context is unavailable.");
+
         var entity = new ConversationEntity
         {
+            OwnerIssuer = _owner.Issuer,
+            OwnerSubject = _owner.Subject,
             Id = conversation.Id,
             Title = conversation.Title,
             ReadingId = conversation.ReadingId,
@@ -38,7 +48,7 @@ public sealed class PostgresConversationRepository : IConversationRepository
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.Conversations
+        var entity = await _dbContext.Conversations.OwnedBy(_owner)
             .AsNoTracking()
             .Include(conversation => conversation.Messages)
             .SingleOrDefaultAsync(conversation => conversation.Id == id, cancellationToken);
@@ -51,7 +61,7 @@ public sealed class PostgresConversationRepository : IConversationRepository
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Conversations.AsNoTracking();
+        var query = _dbContext.Conversations.OwnedBy(_owner).AsNoTracking();
         var totalCount = await query.CountAsync(cancellationToken);
 
         var entities = await query
@@ -100,7 +110,7 @@ public sealed class PostgresConversationRepository : IConversationRepository
         DateTimeOffset updatedAtUtc,
         CancellationToken cancellationToken = default)
     {
-        var conversation = await _dbContext.Conversations
+        var conversation = await _dbContext.Conversations.OwnedBy(_owner)
             .SingleOrDefaultAsync(item => item.Id == conversationId, cancellationToken);
 
         if (conversation is null)
@@ -128,7 +138,7 @@ public sealed class PostgresConversationRepository : IConversationRepository
         DateTimeOffset updatedAtUtc,
         CancellationToken cancellationToken = default)
     {
-        var conversation = await _dbContext.Conversations
+        var conversation = await _dbContext.Conversations.OwnedBy(_owner)
             .SingleOrDefaultAsync(item => item.Id == conversationId, cancellationToken);
 
         if (conversation is null)
@@ -142,6 +152,10 @@ public sealed class PostgresConversationRepository : IConversationRepository
             throw new InvalidOperationException(
                 $"Conversation '{conversationId}' is already linked to a reading.");
         }
+
+        if (!await _dbContext.Readings.OwnedBy(_owner)
+                .AnyAsync(r => r.Id == readingId && r.SourceConversationId == conversationId, cancellationToken))
+            throw new InvalidOperationException("Reading context is unavailable.");
 
         conversation.ReadingId = readingId;
         conversation.UpdatedAtUtc = updatedAtUtc;

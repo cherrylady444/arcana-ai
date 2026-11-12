@@ -1,0 +1,8 @@
+**
+!pyproject.toml
+!uv.lock
+!app/
+!app/**
+!knowledge/
+!knowledge/**
+**/__pycache__/

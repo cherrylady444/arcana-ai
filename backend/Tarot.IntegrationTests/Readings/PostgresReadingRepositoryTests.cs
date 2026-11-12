@@ -59,7 +59,7 @@ public sealed class PostgresReadingRepositoryTests :
     {
         await using var dbContext = _fixture.CreateDbContext();
 
-        var repository = new PostgresReadingRepository(dbContext);
+        var repository = new PostgresReadingRepository(dbContext, TestOwner.Value);
 
         // The database has migrations applied, but it contains no readings.
         var result = await repository.GetPageAsync(
@@ -99,7 +99,7 @@ public sealed class PostgresReadingRepositoryTests :
         dbContext.Readings.AddRange(oldest, newest, middle);
         await dbContext.SaveChangesAsync();
 
-        var repository = new PostgresReadingRepository(dbContext);
+        var repository = new PostgresReadingRepository(dbContext, TestOwner.Value);
 
         var result = await repository.GetPageAsync(
             page: 1,
@@ -134,7 +134,7 @@ public sealed class PostgresReadingRepositoryTests :
         dbContext.Readings.AddRange(readings);
         await dbContext.SaveChangesAsync();
 
-        var repository = new PostgresReadingRepository(dbContext);
+        var repository = new PostgresReadingRepository(dbContext, TestOwner.Value);
 
         var firstPage = await repository.GetPageAsync(
             page: 1,
@@ -183,7 +183,7 @@ public sealed class PostgresReadingRepositoryTests :
         await using (var saveDbContext = _fixture.CreateDbContext())
         {
             var saveRepository =
-                new PostgresReadingRepository(saveDbContext);
+                new PostgresReadingRepository(saveDbContext, TestOwner.Value);
 
             await saveRepository.SaveAsync(reading);
         }
@@ -191,7 +191,7 @@ public sealed class PostgresReadingRepositoryTests :
         await using var readDbContext = _fixture.CreateDbContext();
 
         var readRepository =
-            new PostgresReadingRepository(readDbContext);
+            new PostgresReadingRepository(readDbContext, TestOwner.Value);
 
         var result = await readRepository.GetByIdAsync(reading.Id);
 
@@ -274,7 +274,7 @@ public sealed class PostgresReadingRepositoryTests :
     {
         await using var dbContext = _fixture.CreateDbContext();
 
-        var repository = new PostgresReadingRepository(dbContext);
+        var repository = new PostgresReadingRepository(dbContext, TestOwner.Value);
 
         var nonexistentReadingId = Guid.NewGuid();
 
@@ -303,7 +303,7 @@ public sealed class PostgresReadingRepositoryTests :
         await using (var saveDbContext = _fixture.CreateDbContext())
         {
             var saveRepository =
-                new PostgresReadingRepository(saveDbContext);
+                new PostgresReadingRepository(saveDbContext, TestOwner.Value);
 
             await saveRepository.SaveAsync(reading);
         }
@@ -344,7 +344,7 @@ public sealed class PostgresReadingRepositoryTests :
          */
 
         var verificationRepository =
-            new PostgresReadingRepository(verificationDbContext);
+            new PostgresReadingRepository(verificationDbContext, TestOwner.Value);
 
         var retrieved =
             await verificationRepository.GetByIdAsync(reading.Id);
@@ -412,6 +412,8 @@ public sealed class PostgresReadingRepositoryTests :
 
         return new ReadingEntity
         {
+            OwnerIssuer = TestOwner.Value.Issuer,
+            OwnerSubject = TestOwner.Value.Subject,
             Id = readingId,
             UserContext = "Test reading",
             SpreadKey = cardCount == 1
